@@ -1,52 +1,92 @@
 import fs from 'fs';
 import path from 'path';
 import { InstalledComponent } from './types';
-import { ensureDir, getGlobalCacheDir, logInfo, logSuccess } from './utils';
+import { ensureDir, getGlobalCacheDir, logInfo, logSuccess, logError } from './utils';
 
 export class CacheManager {
   private cacheDir: string;
 
   constructor() {
     this.cacheDir = getGlobalCacheDir();
-    ensureDir(this.cacheDir);
+  }
+
+  /**
+   * Ensures the cache directory exists (async version)
+   * @returns Promise resolving when cache directory is ready
+   */
+  async init(): Promise<void> {
+    await ensureDir(this.cacheDir);
   }
 
   getCachePath(id: string): string {
     return path.join(this.cacheDir, id);
   }
 
-  isInstalled(id: string): boolean {
-    return fs.existsSync(this.getCachePath(id));
+  async isInstalled(id: string): Promise<boolean> {
+    try {
+      await fs.promises.access(this.getCachePath(id));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  getInstalledMetadata(id: string): InstalledComponent | null {
+  async getInstalledMetadata(id: string): Promise<InstalledComponent | null> {
     const metaPath = path.join(this.getCachePath(id), '.aipm-meta.json');
-    if (!fs.existsSync(metaPath)) {
-      return null;
-    }
     try {
-      return JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      const data = await fs.promises.readFile(metaPath, 'utf8');
+      return JSON.parse(data);
     } catch {
       return null;
     }
   }
 
-  saveMetadata(meta: InstalledComponent): void {
-    const metaPath = path.join(this.getCachePath(meta.id), '.aipm-meta.json');
-    fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
-    logSuccess(`Saved metadata for ${meta.id}`);
+  async saveMetadata(meta: InstalledComponent): Promise<void> {
+    try {
+      const componentDir = this.getCachePath(meta.id);
+      await ensureDir(componentDir);
+      const metaPath = path.join(componentDir, '.aipm-meta.json');
+      await fs.promises.writeFile(metaPath, JSON.stringify(meta, null, 2));
+      logSuccess(`Saved metadata for ${meta.id}`);
+    } catch (error) {
+      logError(`Failed to save metadata for ${meta.id}: ${(error as Error).message}`);
+      throw error;
+    }
   }
 
-  listInstalled(): InstalledComponent[] {
-    ensureDir(this.cacheDir);
-    const items = fs.readdirSync(this.cacheDir);
-    const result: InstalledComponent[] = [];
-    for (const item of items) {
-      const meta = this.getInstalledMetadata(item);
-      if (meta) {
-        result.push(meta);
+  async listInstalled(): Promise<InstalledComponent[]> {
+    try {
+      await ensureDir(this.cacheDir);
+      const items = await fs.promises.readdir(this.cacheDir);
+      const result: InstalledComponent[] = [];
+      for (const item of items) {
+        const meta = await this.getInstalledMetadata(item);
+        if (meta) {
+          result.push(meta);
+        }
       }
+      return result;
+    } catch (error) {
+      logError(`Failed to list installed components: ${(error as Error).message}`);
+      return [];
     }
-    return result;
+  }
+
+  async deleteComponent(id: string): Promise<void> {
+    try {
+      const componentPath = this.getCachePath(id);
+      // Check if component exists
+      if (!(await this.isInstalled(id))) {
+        logInfo(`Component ${id} not found in cache`);
+        return;
+      }
+
+      // Remove the component directory
+      await fs.promises.rm(componentPath, { recursive: true, force: true });
+      logSuccess(`Component ${id} deleted from cache`);
+    } catch (error) {
+      logError(`Failed to delete component ${id}: ${(error as Error).message}`);
+      throw error;
+    }
   }
 }
