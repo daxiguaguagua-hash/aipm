@@ -8,6 +8,8 @@ export interface Skill {
 
 export interface Agent {
   id: string;
+  source?: string;
+  version?: string;
   model?: string;
   system?: string;
   skills: string[];
