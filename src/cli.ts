@@ -9,7 +9,7 @@ import { CacheManager } from './cache';
 import { GitInstaller } from './installer';
 import { getAdapter, TargetPlatformName } from './adapters';
 import { ensureDir, getLocalAiDir, getLocalExportsDir, logInfo, logSuccess, logError } from './utils';
-import { StackConfig } from './types';
+import { StackConfig, InstalledComponent } from './types';
 
 const program = new Command();
 const DEFAULT_STACK_FILE = '.ai/stack.yaml';
@@ -110,9 +110,18 @@ program
         installedSkills.push(installed);
       }
 
-      // TODO: Install agents and MCPs
-      const installedAgents: any[] = [];
-      const installedMcps: any[] = [];
+      // Install all agents that have a source
+      const installedAgents: InstalledComponent[] = [];
+      for (const agent of stack.agents || []) {
+        if (agent.source) {
+          // Only agents with source need installation
+          const installed = await installer.installAgent(agent);
+          installedAgents.push(installed);
+        }
+      }
+
+      // MCPs don't need installation - they're passed through directly to the platform
+      const installedMcps: InstalledComponent[] = [];
 
       // Write lock file
       const lockFile = path.join(getLocalAiDir(), 'stack.lock');
