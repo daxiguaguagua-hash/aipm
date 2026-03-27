@@ -87,14 +87,30 @@ dependencies: []
 ```
 
 ### 2. Agent（代理）
-组合多个技能的编排器：
+组合多个技能的编排器。Agent 支持从 Git 远程安装：
 ```yaml
-id: planner
-model: claude-sonnet
-system: ./planner.md
+id: senior-engineer
+source: https://github.com/your-team/team-agents.git
+version: v1.0.0
+model: claude-opus-4-6
+system: |
+  你是我们团队的高级工程师。
+  严格遵守我们的编码规范。
+  始终考虑边界情况和可测试性。
 skills:
-  - code-review
+  - everything-claude-code:tdd
+  - everything-claude-code:security-review
 ```
+
+**字段说明：**
+- `id` - Agent 的唯一标识符
+- `source` - Git 仓库地址（支持 HTTPS 和 SSH）**[远程安装必填]**
+- `version` - Git 标签、分支或 commit hash *[可选，默认为 `latest`]*
+- `model` - 该 Agent 偏好使用的模型
+- `system` - 自定义系统提示词（内联或文件路径）
+- `skills` - 该 Agent 可以使用的技能列表 **[必填]**
+
+AIPM 会自动从 Git 克隆、缓存和升级 Agents。
 
 ### 3. MCP
 外部 Model Context Protocol 服务器：
@@ -124,11 +140,13 @@ transport: stdio
 
 ## 项目状态
 
-- ✅ **第一阶段 MVP 完成** - 核心功能可用
+- ✅ **第二阶段 MVP 完成** - 所有核心功能已实现
 - ✅ `stack.yaml` 解析和验证
-- ✅ Git 安装器（安装 skills/agents/MCPs）
-- ✅ 三个平台的 Adapter
-- ✅ 完整 CLI 支持 `init/install/export/use`
+- ✅ Git 安装器支持**技能、Agents 和 MCPs**
+- ✅ 三个平台的 Adapters，Claude Code 支持完整 skills 导出
+- ✅ 完整 CLI 支持 `init/install/export/use/list`
+- ✅ 从远程 Git 仓库安装 Agents
+- ✅ 自动版本检查和升级
 
 ---
 

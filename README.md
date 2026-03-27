@@ -87,14 +87,30 @@ dependencies: []
 ```
 
 ### 2. Agent
-Orchestrator that composes multiple skills:
+Orchestrator that composes multiple skills. Agents can be installed from Git:
 ```yaml
-id: planner
-model: claude-sonnet
-system: ./planner.md
+id: senior-engineer
+source: https://github.com/your-team/team-agents.git
+version: v1.0.0
+model: claude-opus-4-6
+system: |
+  You are a senior engineer on our team.
+  Follow our coding standards strictly.
+  Always think about edge cases and testability.
 skills:
-  - code-review
+  - everything-claude-code:tdd
+  - everything-claude-code:security-review
 ```
+
+**Fields:**
+- `id` - Unique identifier for the agent
+- `source` - Git repository URL (HTTPS or SSH) *[required for remote installation]*
+- `version` - Git tag, branch, or commit hash *[optional, defaults to `latest`]*
+- `model` - Preferred model for this agent
+- `system` - Custom system prompt (inline or file path)
+- `skills` - List of skills this agent can use *[required]*
+
+AIPM will automatically clone, cache, and update agents from their Git repository.
 
 ### 3. MCP
 External Model Context Protocol server:
@@ -124,11 +140,13 @@ Target platform to deploy your stack to:
 
 ## Project Status
 
-- ✅ **Phase 1 MVP Complete** - Core functionality works
+- ✅ **Phase 2 MVP Complete** - All core features implemented
 - ✅ Parsing and validation of `stack.yaml`
-- ✅ Git installer for skills/agents/MCPs
-- ✅ Adapters for all three platforms
-- ✅ Full CLI with `init/install/export/use`
+- ✅ Git installer for **skills, agents, and MCPs**
+- ✅ Adapters for all three platforms with skills export to Claude Code
+- ✅ Full CLI with `init/install/export/use/list`
+- ✅ Agent installation from remote Git repositories
+- ✅ Automatic version checking and upgrades
 
 ---
 

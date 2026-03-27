@@ -47,10 +47,14 @@ skills:
   #   entry: ./main.md
 
 # Agents orchestrate multiple skills
+# Agents with a source will be installed from Git
 agents:
   # Example:
   # - id: planner
+  #   source: https://github.com/your-org/team-agents.git
+  #   version: v1.0.0
   #   model: claude-sonnet
+  #   system: You are an expert planning agent...
   #   skills: [code-review]
 
 # MCP (Model Context Protocol) external tools
