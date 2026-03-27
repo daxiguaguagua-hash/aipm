@@ -1,63 +1,93 @@
-# AI Coding Stack 管理器（aipm）方案设计
+# aipm - AI Coding Stack Manager
+
+> **[中文文档在这里 / Chinese documentation is here](./README.zh.md)**
+
+aipm is the **Control Plane for your AI Coding environment**.
+
+It unifies the management of your AI capabilities (skills, agents, MCP servers) and deploys them to different AI tools:
+- Claude Code
+- OpenClaw (NanoClaw)
+- OpenCode
+
+Goal: **Turn "tool switching" into "environment switching"** - eliminate the configuration overhead when switching between AI coding tools.
 
 ---
 
-## 一、你的原始问题（用户原话）
+## What is this?
 
-> 我现在用了三套ai编程的工具组。1/claude code；2/openclaw；3/opencode；我发现在这三套工具之间切换的话成本太大了。
-> 
+If you use multiple AI coding tools like Claude Code, OpenClaw, and OpenCode, you've probably noticed that:
+- Each tool has its own configuration format
+- MCP servers need to be configured separately for each tool
+- Skills/agents need to be set up differently
 
-> 我是这样想的：
-> 
-> 
-> 1/用一个包管理工具，就像npm那样；
-> 
-> 2/这个包管理工具能够管理各种skills；
-> 
-> 3/能够管理各种agents；
-> 
-> 4/能够管理各种mcp；
-> 
-> 总之在切换到以上三种工具组合之前，这些配置都用这个管理工具管着。然后一旦我要切换工具，就从这个包管理工具中拿配置，自己填写。
-> 
+aipm solves this by giving you **one declarative configuration file** (`.ai/stack.yaml`) that works for all tools.
 
 ---
 
-## 二、核心定位
+## Installation (Development)
 
-**aipm = AI Coding 环境的控制平面（Control Plane）**
+```bash
+# Clone and build
+git clone https://github.com/yourusername/aipm.git
+cd aipm
+npm install
+npm run build
 
-不是：
+# Link to global
+npm link
+```
 
-- 不是新的 agent
-- 不是新的 IDE
+## Quick Start
 
-而是：
+```bash
+# Initialize in your project
+aipm init
 
-👉 统一管理 AI 能力栈，并分发到不同工具（Claude Code / OpenClaw / OpenCode）
+# Edit .ai/stack.yaml to add your skills, agents, and MCPs
+# (the generated template has comments to guide you)
 
-一句话：
+# Install all components
+aipm install
 
-**把“工具切换”变成“环境切换”**
+# Switch to Claude Code environment (exports configuration)
+aipm use claude-code
 
----
+# That's it! Your Claude Code now has all the configured MCP servers, skills, and agents.
 
-## 三、核心抽象模型
+# Switch to OpenClaw when you need it
+aipm use openclaw
+```
 
-### 1. Skill（能力模块）
+## Commands
 
+| Command | Description |
+|---------|-------------|
+| `aipm init` | Initialize a new aipm project |
+| `aipm install` | Install all components from `stack.yaml` |
+| `aipm export <platform>` | Export configuration to target platform |
+| `aipm use <platform>` | Switch AI environment to target platform |
+| `aipm list` | List all installed components |
+
+## Supported Platforms
+
+- `claude-code` - Claude Code CLI
+- `openclaw` - OpenClaw (NanoClaw)
+- `opencode` - OpenCode
+
+## Core Concepts
+
+### 1. Skill
+Reusable AI capability module:
 ```yaml
 id: code-review
-source: git+https://xxx
+source: git+https://github.com/example/code-review-skill.git
 version: 0.3.1
 entry: ./main.md
 dependencies: []
 ```
 
----
-
-### 2. Agent（能力编排者）
-
+### 2. Agent
+Orchestrator that composes multiple skills:
 ```yaml
 id: planner
 model: claude-sonnet
@@ -66,10 +96,8 @@ skills:
   - code-review
 ```
 
----
-
-### 3. MCP（外部能力）
-
+### 3. MCP
+External Model Context Protocol server:
 ```yaml
 id: filesystem
 command: npx
@@ -77,261 +105,37 @@ args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
 transport: stdio
 ```
 
----
-
-### 4. Target（目标平台）
-
-- claude-code
-- openclaw
-- opencode
+### 4. Target
+Target platform to deploy your stack to:
+- `claude-code`
+- `openclaw`
+- `opencode`
 
 ---
 
-## 四、统一声明（核心文件）
+## Design Principles
 
-`.ai/stack.yaml`
-
-```yaml
-project: my-ai-stack
-
-skills:
-  - id: code-review
-    source: github:xxx/code-review-skill
-
-agents:
-  - id: planner
-    model: claude-sonnet
-    skills:
-      - code-review
-
-mcps:
-  - id: filesystem
-    command: npx
-
-targets:
-  claude-code:
-    agents: [planner]
-
-  openclaw:
-    agents: [planner]
-
-  opencode:
-    skills: [code-review]
-```
+1. **Declarative first** - `stack.yaml` is the single source of truth
+2. **Local-first** - No central registry required, install directly from Git
+3. **80% standard + 20% platform-specific** - Core abstraction is unified, platform differences handled by adapters
+4. **No lock-in** - aipm just generates configuration for your existing tools
 
 ---
 
-## 五、CLI 设计（最小可用）
+## Project Status
 
-### 初始化
-
-```bash
-aipm init
-```
-
-### 添加资源
-
-```bash
-aipm add skill chrome-cdp-skill
-aipm add agent planner
-aipm add mcp filesystem
-```
-
-### 安装依赖
-
-```bash
-aipm install
-```
-
-### 导出配置
-
-```bash
-aipm export openclaw
-```
-
-### 切换环境（核心能力）
-
-```bash
-aipm use claude-code
-aipm use openclaw
-```
-
-👉 自动完成：
-
-- 生成配置
-- 注入环境变量
-- 建立软链接
+- ✅ **Phase 1 MVP Complete** - Core functionality works
+- ✅ Parsing and validation of `stack.yaml`
+- ✅ Git installer for skills/agents/MCPs
+- ✅ Adapters for all three platforms
+- ✅ Full CLI with `init/install/export/use`
 
 ---
 
-## 六、目录结构
+## Development Workflow
 
-```bash
-.ai/
-  stack.yaml
-  stack.lock
+See [docs/development-workflow.md](./docs/development-workflow.md) for the development process and how superpowers skills are used in this project.
 
-  skills/
-  agents/
-  mcps/
+## License
 
-  cache/
-
-  exports/
-    claude-code/
-    openclaw/
-    opencode/
-```
-
----
-
-## 七、系统分层
-
-```
-Interface（CLI）
-Orchestrator（核心逻辑）
-Provider（模型）
-Tool（openclaw / opencode）
-```
-
----
-
-## 八、Adapter 机制（关键）
-
-- adapter-claude-code
-- adapter-openclaw
-- adapter-opencode
-
-负责：
-
-- 配置格式转换
-- 路径映射
-- MCP 注入
-- agent 转译
-
----
-
-## 九、设计原则
-
-1. 声明式优先（stack.yaml 是唯一真相）
-2. 不追求完全兼容
-3. 80% 标准 + 20% 平台特化
-4. 本地优先（先不做 registry）
-
----
-
-## 十、第一阶段目标（必须收敛）
-
-只做：
-
-- stack.yaml
-- 三个 adapter（claude / openclaw / opencode）
-- 三个命令：use / export / install
-
-做到：
-
-👉 一条命令完成工具切换
-
----
-
-## 十一、本质总结
-
-这不是一个包管理器，而是：
-
-👉 **AI Coding Stack 的环境管理系统**
-
----
-
-## 十二、安装 & 使用 / Installation & Usage
-
-### 开发阶段安装（当前）/ Development Installation (Current Phase)
-
-**中文**：
-
-```bash
-# 1. 克隆项目并安装依赖
-git clone <repo-url>
-cd aipm
-npm install
-npm run build
-
-# 2. 链接到全局，让 aipm 命令可用
-npm link
-```
-
-**English**：
-
-```bash
-# 1. Clone the project and install dependencies
-git clone <repo-url>
-cd aipm
-npm install
-npm run build
-
-# 2. Link to global so the aipm command is available
-npm link
-```
-
-### 快速开始 / Quick Start
-
-**中文**：
-
-```bash
-# 在你的项目中初始化
-aipm init
-
-# 编辑 .ai/stack.yaml 添加你的技能、代理和 MCP
-vim .ai/stack.yaml
-
-# 安装所有组件
-aipm install
-
-# 切换到 Claude Code 环境
-aipm use claude-code
-
-# 列出已安装组件
-aipm list
-```
-
-**English**：
-
-```bash
-# Initialize in your project
-aipm init
-
-# Edit .ai/stack.yaml to add your skills, agents, and MCPs
-vim .ai/stack.yaml
-
-# Install all components
-aipm install
-
-# Switch to Claude Code environment
-aipm use claude-code
-
-# List installed components
-aipm list
-```
-
-### 支持的命令 / Commands
-
-| 命令 | 说明 | Description |
-|------|------|-------------|
-| `aipm init` | 初始化 aipm 项目 | Initialize a new aipm project |
-| `aipm install` | 安装所有依赖 | Install all components from stack.yaml |
-| `aipm export <platform>` | 导出配置到目标平台 | Export configuration to target platform |
-| `aipm use <platform>` | 切换到目标平台 | Switch AI environment to target platform |
-| `aipm list` | 列出已安装组件 | List all installed components |
-
-### 支持的平台 / Supported Platforms
-
-- `claude-code` - Claude Code CLI
-- `openclaw` - OpenClaw (NanoClaw)
-- `opencode` - OpenCode
-
----
-
-## 项目状态 / Project Status
-
-- [x] 第一阶段 MVP 完成 - 核心功能可正常使用
-- [x] First stage MVP completed - core functionality works
-- [ ] 未来：添加 `aipm add` 命令，支持公共 registry
+MIT
