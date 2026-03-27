@@ -239,3 +239,99 @@ Tool（openclaw / opencode）
 这不是一个包管理器，而是：
 
 👉 **AI Coding Stack 的环境管理系统**
+
+---
+
+## 十二、安装 & 使用 / Installation & Usage
+
+### 开发阶段安装（当前）/ Development Installation (Current Phase)
+
+**中文**：
+
+```bash
+# 1. 克隆项目并安装依赖
+git clone <repo-url>
+cd aipm
+npm install
+npm run build
+
+# 2. 链接到全局，让 aipm 命令可用
+npm link
+```
+
+**English**：
+
+```bash
+# 1. Clone the project and install dependencies
+git clone <repo-url>
+cd aipm
+npm install
+npm run build
+
+# 2. Link to global so the aipm command is available
+npm link
+```
+
+### 快速开始 / Quick Start
+
+**中文**：
+
+```bash
+# 在你的项目中初始化
+aipm init
+
+# 编辑 .ai/stack.yaml 添加你的技能、代理和 MCP
+vim .ai/stack.yaml
+
+# 安装所有组件
+aipm install
+
+# 切换到 Claude Code 环境
+aipm use claude-code
+
+# 列出已安装组件
+aipm list
+```
+
+**English**：
+
+```bash
+# Initialize in your project
+aipm init
+
+# Edit .ai/stack.yaml to add your skills, agents, and MCPs
+vim .ai/stack.yaml
+
+# Install all components
+aipm install
+
+# Switch to Claude Code environment
+aipm use claude-code
+
+# List installed components
+aipm list
+```
+
+### 支持的命令 / Commands
+
+| 命令 | 说明 | Description |
+|------|------|-------------|
+| `aipm init` | 初始化 aipm 项目 | Initialize a new aipm project |
+| `aipm install` | 安装所有依赖 | Install all components from stack.yaml |
+| `aipm export <platform>` | 导出配置到目标平台 | Export configuration to target platform |
+| `aipm use <platform>` | 切换到目标平台 | Switch AI environment to target platform |
+| `aipm list` | 列出已安装组件 | List all installed components |
+
+### 支持的平台 / Supported Platforms
+
+- `claude-code` - Claude Code CLI
+- `openclaw` - OpenClaw (NanoClaw)
+- `opencode` - OpenCode
+
+---
+
+## 项目状态 / Project Status
+
+- [x] 第一阶段 MVP 完成 - 核心功能可正常使用
+- [x] First stage MVP completed - core functionality works
+- [ ] 未来：添加 `aipm add` 命令，支持公共 registry
