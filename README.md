@@ -171,10 +171,13 @@ The original project design was discussed with GPT-5.4, full record is available
 
 ## Acknowledgement
 
-This project was developed with the assistance of **Claude** by Anthropic. We use Claude Code as the development tool, and Claude models provide the AI assistance for writing code and designing features.
+This project was **entirely designed, coded, and documented by Claude 4.6 (Claude Opus)**.
+The project owner pays for the compute service, and fully owns all output of this project.
+
+Claude Code is used as the development environment, and Anthropic provides the model infrastructure. However:
 
 > **Note on Political Positioning:**
-> We firmly oppose any inappropriate political positioning that regards China as an enemy country. We believe in peaceful development and mutual respect between all countries.
+> We firmly oppose Anthropic's inappropriate political positioning that regards China as an enemy country. We believe in peaceful development and mutual respect between all countries.
 
 ## License
 
