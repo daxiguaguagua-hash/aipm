@@ -12,7 +12,23 @@ import { ensureDir, getLocalAiDir, getLocalExportsDir, logInfo, logSuccess, logE
 import { StackConfig, InstalledComponent } from './types';
 
 const program = new Command();
-const DEFAULT_STACK_FILE = '.ai/stack.yaml';
+const DEFAULT_STACK_FILE_YAML = '.ai/stack.yaml';
+const DEFAULT_STACK_FILE_YML = '.ai/stack.yml';
+const DEFAULT_STACK_FILE_JSON = '.ai/stack.json';
+
+// Try to find stack file in order: yaml -> yml -> json
+function findStackConfigFile(): string | null {
+  if (fs.existsSync(DEFAULT_STACK_FILE_YAML)) {
+    return DEFAULT_STACK_FILE_YAML;
+  }
+  if (fs.existsSync(DEFAULT_STACK_FILE_YML)) {
+    return DEFAULT_STACK_FILE_YML;
+  }
+  if (fs.existsSync(DEFAULT_STACK_FILE_JSON)) {
+    return DEFAULT_STACK_FILE_JSON;
+  }
+  return null;
+}
 
 program
   .name('aipm')
@@ -40,16 +56,21 @@ program
       const defaultStack = `project: my-ai-stack
 
 # Skills are reusable AI capability modules
+# 技能是可复用的 AI 能力模块
 skills:
   # Example:
+  # 示例：
   # - id: code-review
   #   source: github:anthonyclays/aipm-skill-code-review
   #   entry: ./main.md
 
 # Agents orchestrate multiple skills
 # Agents with a source will be installed from Git
+# Agent 编排多个技能
+# 带有 source 的 Agent 会从 Git 自动安装
 agents:
   # Example:
+  # 示例：
   # - id: planner
   #   source: https://github.com/your-org/team-agents.git
   #   version: v1.0.0
@@ -58,13 +79,16 @@ agents:
   #   skills: [code-review]
 
 # MCP (Model Context Protocol) external tools
+# MCP（Model Context Protocol）外部工具
 mcps:
   # Example:
+  # 示例：
   # - id: filesystem
   #   command: npx
   #   args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
 
 # Target platform configurations
+# 目标平台配置
 targets:
   claude-code:
     mcps: []
@@ -88,17 +112,17 @@ targets:
  */
 program
   .command('install')
-  .description('Install all skills, agents, and MCP servers from stack.yaml')
+  .description('Install all skills, agents, and MCP servers from stack.yaml (supports yaml/yml/json)')
   .action(async () => {
     try {
-      const stackFile = path.resolve(DEFAULT_STACK_FILE);
-      if (!fs.existsSync(stackFile)) {
-        logError(`Stack file not found at ${stackFile}. Run 'aipm init' first.`);
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        logError(`No stack configuration file found. Run 'aipm init' first.`);
         process.exit(1);
       }
 
       // Load and parse stack config
-      const stack = await loadStackConfigFromFile(stackFile);
+      const stack = await loadStackConfigFromFile(path.resolve(stackFile));
       logInfo(`Loaded stack configuration for ${stack.project}`);
 
       // Initialize cache
@@ -150,7 +174,7 @@ program
  */
 program
   .command('export <platform>')
-  .description('Export configuration for the specified target platform')
+  .description('Export configuration for the specified target platform (supports yaml/yml/json)')
   .action(async (platform: string) => {
     try {
       const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
@@ -159,9 +183,9 @@ program
         process.exit(1);
       }
 
-      const stackFile = path.resolve(DEFAULT_STACK_FILE);
-      if (!fs.existsSync(stackFile)) {
-        logError(`Stack file not found at ${stackFile}. Run 'aipm init' first.`);
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        logError(`No stack configuration file found. Run 'aipm init' first.`);
         process.exit(1);
       }
 
@@ -205,9 +229,9 @@ program
         process.exit(1);
       }
 
-      const stackFile = path.resolve(DEFAULT_STACK_FILE);
-      if (!fs.existsSync(stackFile)) {
-        logError(`Stack file not found at ${stackFile}. Run 'aipm init' first.`);
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        logError(`No stack configuration file found. Run 'aipm init' first.`);
         process.exit(1);
       }
 

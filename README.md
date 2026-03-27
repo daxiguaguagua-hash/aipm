@@ -20,7 +20,8 @@ If you use multiple AI coding tools like Claude Code, OpenClaw, and OpenCode, yo
 - MCP servers need to be configured separately for each tool
 - Skills/agents need to be set up differently
 
-aipm solves this by giving you **one declarative configuration file** (`.ai/stack.yaml`) that works for all tools.
+aipm solves this by giving you **one declarative configuration file** that works for all tools.
+Supports both YAML (`.yaml`/`.yml`) and JSON formats.
 
 ---
 
@@ -58,13 +59,23 @@ aipm use claude-code
 aipm use openclaw
 ```
 
+## Workflow: Portable AI Environment
+
+Since your entire AI environment is defined in one configuration file, you can:
+1. **Commit** your `.ai/stack.yaml` (or `.json`) to your dotfiles or project repository
+2. **Clone** on a new machine
+3. **Run** `aipm install && aipm use <platform>`
+4. **Done** - you have your exact familiar AI environment on the new machine!
+
+No more manual setup when you get a new computer.
+
 ## Commands
 
 | Command | Description |
 |---------|-------------|
 | `aipm init` | Initialize a new aipm project |
-| `aipm install` | Install all components from `stack.yaml` |
-| `aipm export <platform>` | Export configuration to target platform |
+| `aipm install` | Install all components from stack config (supports yaml/yml/json) |
+| `aipm export <platform>` | Export configuration to target platform (supports yaml/yml/json) |
 | `aipm use <platform>` | Switch AI environment to target platform |
 | `aipm list` | List all installed components |
 

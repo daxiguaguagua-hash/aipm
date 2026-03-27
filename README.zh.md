@@ -20,7 +20,8 @@ aipm 是你的 **AI 编程环境控制平面**。
 - MCP 服务器需要在每个工具中单独配置
 - Skills/agents 需要不同的设置
 
-aipm 通过给你**一份声明式配置文件**（`.ai/stack.yaml`）解决这个问题，一份配置对所有工具生效。
+aipm 通过给你**一份声明式配置文件**解决这个问题，一份配置对所有工具生效。
+同时支持 YAML（`.yaml`/`.yml`）和 JSON 两种格式。
 
 ---
 
@@ -58,13 +59,23 @@ aipm use claude-code
 aipm use openclaw
 ```
 
+## 工作流：随身携带你的 AI 环境
+
+因为你的整个 AI 环境都定义在一个配置文件中，你可以：
+1. **提交** 你的 `.ai/stack.yaml`（或 `.json`）到你的 dotfiles 或项目仓库
+2. 在**新电脑克隆**下来
+3. **运行** `aipm install && aipm use <平台>`
+4. **完成** - 你已经在新机器上拥有了熟悉的 AI 环境！
+
+换新电脑不再需要重复手动配置。
+
 ## 命令
 
 | 命令 | 说明 |
 |---------|-------------|
 | `aipm init` | 初始化新的 aipm 项目 |
-| `aipm install` | 从 `stack.yaml` 安装所有组件 |
-| `aipm export <platform>` | 导出配置到目标平台 |
+| `aipm install` | 从配置文件安装所有组件（支持 yaml/yml/json） |
+| `aipm export <platform>` | 导出配置到目标平台（支持 yaml/yml/json） |
 | `aipm use <platform>` | 切换 AI 环境到目标平台 |
 | `aipm list` | 列出所有已安装组件 |
 

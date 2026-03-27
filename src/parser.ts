@@ -1,17 +1,27 @@
 import yaml from 'js-yaml';
 import fs from 'fs';
+import path from 'path';
 import { StackConfig, Skill, Agent, MCP, TargetPlatform } from './types';
 import { logError } from './utils';
 
 /**
- * Parses and validates AI stack configuration from YAML content
- * @param content YAML string containing stack configuration
+ * Parses and validates AI stack configuration from YAML or JSON content
+ * @param content Content string (YAML or JSON)
  * @returns Validated StackConfig object
  * @throws Error if configuration is invalid
  */
 export function parseStackConfig(content: string): StackConfig {
   try {
-    const config = yaml.load(content) as any;
+    let config: any;
+
+    // Try to parse as JSON first if it looks like JSON
+    const trimmed = content.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      config = JSON.parse(content);
+    } else {
+      // Default to YAML
+      config = yaml.load(content) as any;
+    }
 
     // Basic validation
     if (!config.project || typeof config.project !== 'string') {
@@ -89,7 +99,7 @@ export function parseStackConfig(content: string): StackConfig {
     return stackConfig;
   } catch (error) {
     if (error instanceof Error) {
-      logError(`YAML parse error: ${error.message}`);
+      logError(`Parse error: ${error.message}`);
       throw error;
     }
     throw new Error('Unknown parse error');
@@ -98,7 +108,8 @@ export function parseStackConfig(content: string): StackConfig {
 
 /**
  * Loads and parses AI stack configuration from file asynchronously
- * @param filePath Path to the YAML configuration file
+ * Supports .yaml, .yml, and .json formats
+ * @param filePath Path to the configuration file
  * @returns Promise<StackConfig> Validated StackConfig object
  * @throws Error if file read or parsing fails
  */
@@ -109,7 +120,8 @@ export async function loadStackConfigFromFile(filePath: string): Promise<StackCo
 
 /**
  * Loads and parses AI stack configuration from file synchronously
- * @param filePath Path to the YAML configuration file
+ * Supports .yaml, .yml, and .json formats
+ * @param filePath Path to the configuration file
  * @returns Validated StackConfig object
  * @throws Error if file read or parsing fails
  */
