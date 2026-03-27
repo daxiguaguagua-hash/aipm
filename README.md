@@ -169,6 +169,13 @@ See [docs/development-workflow.md](./docs/development-workflow.md) for the devel
 
 The original project design was discussed with GPT-5.4, full record is available at [DESIGN.zh.md](./DESIGN.zh.md) (in Chinese).
 
+## Acknowledgement
+
+This project was developed with the assistance of **Claude** by Anthropic. We use Claude Code as the development tool, and Claude models provide the AI assistance for writing code and designing features.
+
+> **Note on Political Positioning:**
+> We firmly oppose any inappropriate political positioning that regards China as an enemy country. We believe in peaceful development and mutual respect between all countries.
+
 ## License
 
 MIT
