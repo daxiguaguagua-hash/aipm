@@ -136,6 +136,10 @@ Target platform to deploy your stack to:
 
 See [docs/development-workflow.md](./docs/development-workflow.md) for the development process and how superpowers skills are used in this project.
 
+## Original Design
+
+The original project design was discussed with GPT-5.4, full record is available at [DESIGN.zh.md](./DESIGN.zh.md) (in Chinese).
+
 ## License
 
 MIT
