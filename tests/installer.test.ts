@@ -101,51 +101,87 @@ describe('GitInstaller', () => {
   });
 
   test('installAgent should install agent from git', async () => {
-    const mockGit = {
-      clone: jest.fn().mockResolvedValue(undefined),
-      checkout: jest.fn().mockResolvedValue(undefined),
-      revparse: jest.fn().mockResolvedValue('abcdef1234567890'),
-    };
-    (mockSimpleGit as jest.Mock).mockReturnValue(mockGit);
-
-    cacheManager.isInstalled = jest.fn().mockResolvedValue(false);
-    cacheManager.saveMetadata = jest.fn().mockResolvedValue(undefined);
-
-    const agent = {
+    const agent: Agent = {
       id: 'test-agent',
       source: 'https://github.com/user/test-agent.git',
       version: 'v1.0.0',
       skills: ['test-skill'],
     };
 
+    cacheManager.isInstalled.mockResolvedValue(false);
+
     const result = await installer.installAgent(agent);
 
+    expect(cacheManager.saveMetadata).toHaveBeenCalled();
     expect(result.id).toBe('test-agent');
     expect(result.version).toBe('v1.0.0');
-    expect(cacheManager.saveMetadata).toHaveBeenCalled();
-    expect(mockGit.clone).toHaveBeenCalled();
+    expect(mockSimpleGit).toHaveBeenCalled();
   });
 
-  test('installAgent should return existing if already installed', async () => {
-    cacheManager.isInstalled = jest.fn().mockResolvedValue(true);
-    cacheManager.getInstalledMetadata = jest.fn().mockResolvedValue({
+  test('installAgent should return existing if already installed at same version', async () => {
+    const agent: Agent = {
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v1.0.0',
+      skills: ['test-skill'],
+    };
+
+    const existingMeta = {
       id: 'test-agent',
       source: 'https://github.com/user/test-agent.git',
       version: 'v1.0.0',
       path: '/cache/test-agent',
-    });
-    cacheManager.saveMetadata = jest.fn().mockResolvedValue(undefined);
-
-    const agent = {
-      id: 'test-agent',
-      source: 'https://github.com/user/test-agent.git',
-      version: 'v1.0.0',
-      skills: ['test-skill'],
     };
+
+    cacheManager.isInstalled.mockResolvedValue(true);
+    cacheManager.getInstalledMetadata.mockResolvedValue(existingMeta);
 
     const result = await installer.installAgent(agent);
 
-    expect(result.version).toBe('v1.0.0');
-    expect(cacheManager.saveMetadata).not.toHaveBeenCalled();
+    expect(result).toEqual(existingMeta);
+    expect(mockSimpleGit).not.toHaveBeenCalled();
+  });
+
+  test('installAgent should upgrade agent when version differs', async () => {
+    const agent: Agent = {
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v2.0.0',
+      skills: ['test-skill'],
+    };
+
+    const existingMeta = {
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v1.0.0',
+      path: '/cache/test-agent',
+    };
+
+    cacheManager.isInstalled.mockResolvedValue(true);
+    cacheManager.getInstalledMetadata.mockResolvedValue(existingMeta);
+
+    const result = await installer.installAgent(agent);
+
+    expect(cacheManager.deleteComponent).toHaveBeenCalledWith('test-agent');
+    expect(cacheManager.saveMetadata).toHaveBeenCalled();
+    expect(result.version).toBe('v2.0.0');
+  });
+
+  test('installAgent should throw error when agent has no source', async () => {
+    const agent: Agent = {
+      id: 'test-agent',
+      skills: ['test-skill'],
+    };
+
+    await expect(installer.installAgent(agent)).rejects.toThrow('Agent test-agent has no source URL');
+  });
+
+  test('installSkill should throw error when skill has no source', async () => {
+    const skill = {
+      id: 'test-skill',
+      entry: './main.md',
+    } as unknown as Skill;
+
+    await expect(installer.installSkill(skill)).rejects.toThrow('Skill test-skill has no source URL');
   });
 });

@@ -21,31 +21,10 @@ export class GitInstaller {
    * @returns Promise resolving to InstalledComponent metadata
    */
   async installSkill(skill: Skill): Promise<InstalledComponent> {
-    logInfo(`Installing skill ${skill.id} from ${skill.source}`);
-
-    // Check if already installed
-    if (await this.cacheManager.isInstalled(skill.id)) {
-      const existing = await this.cacheManager.getInstalledMetadata(skill.id);
-      if (existing && existing.version === (skill.version || 'latest')) {
-        logSuccess(`Skill ${skill.id} already installed at version ${existing.version}`);
-        return existing;
-      }
-      // If version different, we need to reinstall/upgrade
-      logInfo(`Updating skill ${skill.id} to version ${skill.version || 'latest'}`);
-      await this.cacheManager.deleteComponent(skill.id);
+    if (!skill.source) {
+      throw new Error(`Skill ${skill.id} has no source URL`);
     }
-
-    const component: InstalledComponent = await this.cloneRepository(
-      skill.id,
-      skill.source,
-      skill.version
-    );
-
-    // Save metadata
-    await this.cacheManager.saveMetadata(component);
-
-    logSuccess(`Installed skill ${skill.id}@${component.version}`);
-    return component;
+    return this.installComponent(skill.id, skill.source, skill.version, 'skill');
   }
 
   /**
@@ -54,30 +33,50 @@ export class GitInstaller {
    * @returns Promise resolving to InstalledComponent metadata
    */
   async installAgent(agent: Agent): Promise<InstalledComponent> {
-    logInfo(`Installing agent ${agent.id} from ${agent.source}`);
+    if (!agent.source) {
+      throw new Error(`Agent ${agent.id} has no source URL`);
+    }
+    return this.installComponent(agent.id, agent.source, agent.version, 'agent');
+  }
+
+  /**
+   * Generic component installation logic
+   * @param id Component ID
+   * @param source Git source URL
+   * @param version Optional version
+   * @param componentType Type of component ('skill' or 'agent')
+   * @returns Promise resolving to InstalledComponent metadata
+   */
+  private async installComponent(
+    id: string,
+    source: string,
+    version: string | undefined,
+    componentType: 'skill' | 'agent'
+  ): Promise<InstalledComponent> {
+    logInfo(`Installing ${componentType} ${id} from ${source}`);
 
     // Check if already installed
-    if (await this.cacheManager.isInstalled(agent.id)) {
-      const existing = await this.cacheManager.getInstalledMetadata(agent.id);
-      if (existing && existing.version === (agent.version || 'latest')) {
-        logSuccess(`Agent ${agent.id} already installed at version ${existing.version}`);
+    if (await this.cacheManager.isInstalled(id)) {
+      const existing = await this.cacheManager.getInstalledMetadata(id);
+      if (existing && existing.version === (version || 'latest')) {
+        logSuccess(`${componentType.charAt(0).toUpperCase() + componentType.slice(1)} ${id} already installed at version ${existing.version}`);
         return existing;
       }
       // If version different, we need to reinstall/upgrade
-      logInfo(`Updating agent ${agent.id} to version ${agent.version || 'latest'}`);
-      await this.cacheManager.deleteComponent(agent.id);
+      logInfo(`Updating ${componentType} ${id} to version ${version || 'latest'}`);
+      await this.cacheManager.deleteComponent(id);
     }
 
     const component: InstalledComponent = await this.cloneRepository(
-      agent.id,
-      agent.source!,
-      agent.version
+      id,
+      source,
+      version
     );
 
     // Save metadata
     await this.cacheManager.saveMetadata(component);
 
-    logSuccess(`Installed agent ${agent.id}@${component.version}`);
+    logSuccess(`Installed ${componentType} ${id}@${component.version}`);
     return component;
   }
 
