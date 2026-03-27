@@ -2,7 +2,7 @@ import simpleGit from 'simple-git';
 import fs from 'fs';
 import path from 'path';
 import { CacheManager } from './cache';
-import { InstalledComponent, Skill } from './types';
+import { InstalledComponent, Skill, Agent } from './types';
 import { extractGitRepoName, logInfo, logSuccess, logError, ensureDir } from './utils';
 
 /**
@@ -45,6 +45,39 @@ export class GitInstaller {
     await this.cacheManager.saveMetadata(component);
 
     logSuccess(`Installed skill ${skill.id}@${component.version}`);
+    return component;
+  }
+
+  /**
+   * Install an agent from its Git source
+   * @param agent Agent to install
+   * @returns Promise resolving to InstalledComponent metadata
+   */
+  async installAgent(agent: Agent): Promise<InstalledComponent> {
+    logInfo(`Installing agent ${agent.id} from ${agent.source}`);
+
+    // Check if already installed
+    if (await this.cacheManager.isInstalled(agent.id)) {
+      const existing = await this.cacheManager.getInstalledMetadata(agent.id);
+      if (existing && existing.version === (agent.version || 'latest')) {
+        logSuccess(`Agent ${agent.id} already installed at version ${existing.version}`);
+        return existing;
+      }
+      // If version different, we need to reinstall/upgrade
+      logInfo(`Updating agent ${agent.id} to version ${agent.version || 'latest'}`);
+      await this.cacheManager.deleteComponent(agent.id);
+    }
+
+    const component: InstalledComponent = await this.cloneRepository(
+      agent.id,
+      agent.source!,
+      agent.version
+    );
+
+    // Save metadata
+    await this.cacheManager.saveMetadata(component);
+
+    logSuccess(`Installed agent ${agent.id}@${component.version}`);
     return component;
   }
 

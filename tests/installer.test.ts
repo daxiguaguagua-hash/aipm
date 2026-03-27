@@ -1,6 +1,6 @@
 import { GitInstaller } from '../src/installer';
 import { CacheManager } from '../src/cache';
-import { Skill } from '../src/types';
+import { Skill, Agent } from '../src/types';
 
 // Mock simple-git
 jest.mock('simple-git', () => {
@@ -98,5 +98,54 @@ describe('GitInstaller', () => {
 
     expect(result.id).toBe('test-skill');
     expect(cacheManager.saveMetadata).toHaveBeenCalled();
+  });
+
+  test('installAgent should install agent from git', async () => {
+    const mockGit = {
+      clone: jest.fn().mockResolvedValue(undefined),
+      checkout: jest.fn().mockResolvedValue(undefined),
+      revparse: jest.fn().mockResolvedValue('abcdef1234567890'),
+    };
+    (mockSimpleGit as jest.Mock).mockReturnValue(mockGit);
+
+    cacheManager.isInstalled = jest.fn().mockResolvedValue(false);
+    cacheManager.saveMetadata = jest.fn().mockResolvedValue(undefined);
+
+    const agent = {
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v1.0.0',
+      skills: ['test-skill'],
+    };
+
+    const result = await installer.installAgent(agent);
+
+    expect(result.id).toBe('test-agent');
+    expect(result.version).toBe('v1.0.0');
+    expect(cacheManager.saveMetadata).toHaveBeenCalled();
+    expect(mockGit.clone).toHaveBeenCalled();
+  });
+
+  test('installAgent should return existing if already installed', async () => {
+    cacheManager.isInstalled = jest.fn().mockResolvedValue(true);
+    cacheManager.getInstalledMetadata = jest.fn().mockResolvedValue({
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v1.0.0',
+      path: '/cache/test-agent',
+    });
+    cacheManager.saveMetadata = jest.fn().mockResolvedValue(undefined);
+
+    const agent = {
+      id: 'test-agent',
+      source: 'https://github.com/user/test-agent.git',
+      version: 'v1.0.0',
+      skills: ['test-skill'],
+    };
+
+    const result = await installer.installAgent(agent);
+
+    expect(result.version).toBe('v1.0.0');
+    expect(cacheManager.saveMetadata).not.toHaveBeenCalled();
   });
 });
