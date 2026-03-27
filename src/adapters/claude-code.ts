@@ -47,12 +47,34 @@ export class ClaudeCodeAdapter implements Adapter {
         }
       }
 
-      // Write settings.json
-      const outputPath = path.join(outputDir, '.claude', 'settings.json');
-      await ensureDir(path.dirname(outputPath));
-      await fs.promises.writeFile(outputPath, JSON.stringify(settings, null, 2), 'utf8');
+      // Add skills from the stack configuration
+      if (targetConfig && targetConfig.skills) {
+        settings.skills = {};
+        for (const skillId of targetConfig.skills) {
+          const installedSkill = installed.skills.find(s => s.id === skillId);
+          if (!installedSkill) {
+            logError(`Skill ${skillId} not installed, skipping`);
+            continue;
+          }
+          settings.skills[skillId] = {
+            path: installedSkill.path,
+            version: installedSkill.version,
+          };
+        }
+      }
 
-      logSuccess(`Exported Claude Code configuration to ${outputPath}`);
+      // Write settings.json for MCP configuration
+      const settingsPath = path.join(outputDir, '.claude', 'settings.json');
+      await ensureDir(path.dirname(settingsPath));
+      await fs.promises.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+
+      // Write skills.json if there are skills
+      if (settings.skills && Object.keys(settings.skills).length > 0) {
+        const skillsPath = path.join(outputDir, '.claude', 'skills.json');
+        await fs.promises.writeFile(skillsPath, JSON.stringify({ skills: settings.skills }, null, 2), 'utf8');
+      }
+
+      logSuccess(`Exported Claude Code configuration to ${outputDir}/.claude/`);
     } catch (error) {
       logError(`Failed to export Claude Code configuration: ${(error as Error).message}`);
       throw error;
