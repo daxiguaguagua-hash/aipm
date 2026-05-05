@@ -248,4 +248,36 @@ describe('Adapters', () => {
       fs.rmSync(tempDir, { recursive: true });
     });
   });
+    test('ClaudeCodeAdapter should export inline agents', async () => {
+      const adapter = getAdapter('claude-code');
+      const stack: StackConfig = {
+        project: 'test',
+        agents: [
+          { id: 'inline-planner', model: 'claude-haiku', system: 'Keep it short.', skills: ['code-review'] },
+        ],
+        targets: {
+          'claude-code': { agents: ['inline-planner'] },
+          openclaw: {},
+          opencode: {},
+        },
+      };
+      const installed = { skills: [], agents: [], mcps: [] };
+
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aipm-test-'));
+      await adapter.exportConfig(stack, installed, tempDir);
+
+      const agentsPath = path.join(tempDir, '.claude', 'agents.json');
+      expect(fs.existsSync(agentsPath)).toBe(true);
+
+      const agentsJson = JSON.parse(fs.readFileSync(agentsPath, 'utf8'));
+      expect(agentsJson.agents['inline-planner']).toEqual({
+        model: 'claude-haiku',
+        system: 'Keep it short.',
+        skills: ['code-review'],
+      });
+
+      fs.rmSync(tempDir, { recursive: true });
+    });
+
+
 });

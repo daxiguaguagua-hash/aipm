@@ -77,14 +77,23 @@ export class OpenCodeAdapter implements Adapter {
         if (targetConfig.agents) {
           for (const agentId of targetConfig.agents) {
             const installedAgent = installed.agents.find(a => a.id === agentId);
-            if (!installedAgent) {
-              logError(`Agent ${agentId} not installed, skipping`);
-              continue;
+            if (installedAgent) {
+              aiConfig.agents[agentId] = {
+                path: installedAgent.path,
+                version: installedAgent.version,
+              };
+            } else {
+              const inlineAgent = (stack.agents || []).find(a => a.id === agentId && !a.source);
+              if (inlineAgent) {
+                aiConfig.agents[agentId] = {
+                  model: inlineAgent.model,
+                  system: inlineAgent.system,
+                  skills: inlineAgent.skills,
+                };
+              } else {
+                logError(`Agent ${agentId} not installed, skipping`);
+              }
             }
-            aiConfig.agents[agentId] = {
-              path: installedAgent.path,
-              version: installedAgent.version,
-            };
           }
         }
 

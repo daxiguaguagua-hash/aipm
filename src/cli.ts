@@ -16,6 +16,9 @@ const DEFAULT_STACK_FILE_YAML = '.ai/stack.yaml';
 const DEFAULT_STACK_FILE_YML = '.ai/stack.yml';
 const DEFAULT_STACK_FILE_JSON = '.ai/stack.json';
 
+// Cached AI directory derived from the found stack config file
+let resolvedAiDir: string | null = null;
+
 // Try to find stack file in order: yaml -> yml -> json
 // Searches current directory first, then parent directories
 function findStackConfigFile(): string | null {
@@ -26,6 +29,7 @@ function findStackConfigFile(): string | null {
     for (const file of files) {
       const fullPath = path.join(dir, file);
       if (fs.existsSync(fullPath)) {
+        resolvedAiDir = path.dirname(fullPath);
         return fullPath;
       }
     }
@@ -35,7 +39,12 @@ function findStackConfigFile(): string | null {
     dir = parent;
   }
 
+  resolvedAiDir = null;
   return null;
+}
+
+function getAiDir(): string {
+  return resolvedAiDir || getLocalAiDir();
 }
 
 async function exportToPlatform(platform: string): Promise<void> {
@@ -51,7 +60,7 @@ async function exportToPlatform(platform: string): Promise<void> {
     process.exit(1);
   }
 
-  const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+  const lockFile = path.join(getAiDir(), 'stack.lock');
   if (!fs.existsSync(lockFile)) {
     logError(`Lock file not found at ${lockFile}. Run 'aipm install' first.`);
     process.exit(1);
@@ -83,7 +92,7 @@ program
   .option('-f, --force', 'Overwrite existing stack.yaml if it exists')
   .action(async (options: { force?: boolean }) => {
     try {
-      const aiDir = getLocalAiDir();
+      const aiDir = getAiDir();
       await ensureDir(aiDir);
 
       const stackFile = path.join(aiDir, 'stack.yaml');
@@ -250,7 +259,7 @@ program
       const installedMcps: InstalledComponent[] = [];
 
       // Write lock file
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      const lockFile = path.join(getAiDir(), 'stack.lock');
       const lockContent = {
         project: stack.project,
         skills: installedSkills,
@@ -294,7 +303,7 @@ program
       await exportToPlatform(platform);
 
       // Write current platform state
-      const currentFile = path.join(getLocalAiDir(), 'current');
+      const currentFile = path.join(getAiDir(), 'current');
       await fs.promises.writeFile(currentFile, platform, 'utf8');
 
       logSuccess(`Switched to ${chalk.bold(platform)} environment`);
@@ -314,7 +323,7 @@ program
   .action(async (options: { json?: boolean }) => {
     try {
       // Prefer lock file for richer data, fall back to cache
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      const lockFile = path.join(getAiDir(), 'stack.lock');
       let skills: InstalledComponent[] = [];
       let agents: InstalledComponent[] = [];
       let mcps: InstalledComponent[] = [];
@@ -380,7 +389,7 @@ program
   .description('Show current AI environment status')
   .action(async () => {
     try {
-      const aiDir = getLocalAiDir();
+      const aiDir = getAiDir();
 
       // Check for stack config
       const stackFile = findStackConfigFile();
@@ -464,7 +473,7 @@ program
         process.exit(1);
       }
 
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      const lockFile = path.join(getAiDir(), 'stack.lock');
       if (!fs.existsSync(lockFile)) {
         logError(`Lock file not found. Run 'aipm install' first.`);
         process.exit(1);
@@ -557,7 +566,7 @@ program
       logSuccess(`Uninstalled ${id}`);
 
       // Update lock file if it exists
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      const lockFile = path.join(getAiDir(), 'stack.lock');
       if (fs.existsSync(lockFile)) {
         const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
         lock.skills = (lock.skills || []).filter((s: InstalledComponent) => s.id !== id);
@@ -643,7 +652,7 @@ program
       }
 
       // Clear lock file
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      const lockFile = path.join(getAiDir(), 'stack.lock');
       if (fs.existsSync(lockFile)) {
         await fs.promises.unlink(lockFile);
       }

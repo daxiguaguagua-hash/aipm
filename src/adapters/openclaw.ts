@@ -68,14 +68,23 @@ export class OpenClawAdapter implements Adapter {
       if (targetConfig && targetConfig.agents) {
         for (const agentId of targetConfig.agents) {
           const installedAgent = installed.agents.find(a => a.id === agentId);
-          if (!installedAgent) {
-            logError(`Agent ${agentId} not installed, skipping`);
-            continue;
+          if (installedAgent) {
+            settings.agents[agentId] = {
+              path: installedAgent.path,
+              version: installedAgent.version,
+            };
+          } else {
+            const inlineAgent = (stack.agents || []).find(a => a.id === agentId && !a.source);
+            if (inlineAgent) {
+              settings.agents[agentId] = {
+                model: inlineAgent.model,
+                system: inlineAgent.system,
+                skills: inlineAgent.skills,
+              };
+            } else {
+              logError(`Agent ${agentId} not installed, skipping`);
+            }
           }
-          settings.agents[agentId] = {
-            path: installedAgent.path,
-            version: installedAgent.version,
-          };
         }
       }
 
