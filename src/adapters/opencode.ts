@@ -40,6 +40,10 @@ export class OpenCodeAdapter implements Adapter {
             args: mcpDef.args || [],
             env: mcpDef.env || {},
           };
+
+          if (mcpDef.transport) {
+            config.mcpServers[mcpId].transport = mcpDef.transport;
+          }
         }
       }
 
