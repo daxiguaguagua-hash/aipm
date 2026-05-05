@@ -521,7 +521,7 @@ program
 
       let updated = 0;
 
-      // Update skills
+      // Update skills — installer handles cache internally
       for (const skill of stack.skills || []) {
         if (id && skill.id !== id) continue;
         if (!(await cacheManager.isInstalled(skill.id))) {
@@ -529,12 +529,11 @@ program
           continue;
         }
         logInfo(`Updating skill ${skill.id}...`);
-        await cacheManager.deleteComponent(skill.id);
         await installer.installSkill(skill);
         updated++;
       }
 
-      // Update agents
+      // Update agents — installer handles cache internally
       for (const agent of stack.agents || []) {
         if (id && agent.id !== id) continue;
         if (!agent.source) continue;
@@ -543,7 +542,6 @@ program
           continue;
         }
         logInfo(`Updating agent ${agent.id}...`);
-        await cacheManager.deleteComponent(agent.id);
         await installer.installAgent(agent);
         updated++;
       }
