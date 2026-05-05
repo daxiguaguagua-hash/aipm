@@ -34,6 +34,11 @@ aipm (AI Coding Stack Manager) — AI 编程栈管理器，TypeScript CLI 工具
 
 用户提出的需求和改进记录在 `TODO.md` 中。工作过程中如果遇到新的需求或 bug，追加到 TODO.md 中，不要存在记忆里。
 
+TODO.md 标记约定：
+- `[ ]` 未开始
+- `[-]` 进行中
+- `[*]` 已完成
+
 # 文档约定
 
 - README.md (英文，GitHub 首页默认展示)
