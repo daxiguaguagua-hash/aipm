@@ -111,8 +111,10 @@ program
         process.exit(0);
       }
 
+      const projectName = path.basename(process.cwd());
+
       // Create default stack.yaml
-      const defaultStack = `project: my-ai-stack
+      const defaultStack = `project: ${projectName}
 
 # ==========================================
 # Skills — reusable AI capability modules
@@ -181,8 +183,8 @@ targets:
 `;
 
       await fs.promises.writeFile(stackFile, defaultStack, 'utf8');
-      logSuccess(`Initialized aipm project at ${aiDir}`);
-      logInfo('Edit ' + stackFile + ' to add your skills, agents, and MCP servers');
+      logSuccess(`Initialized aipm project "${projectName}" at ${aiDir}`);
+      logInfo('Edit the first line of ' + stackFile + ' to rename, or add skills, agents, and MCP servers');
     } catch (error) {
       logError(`Init failed: ${(error as Error).message}`);
       process.exit(1);
