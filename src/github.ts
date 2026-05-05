@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import https from 'https';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
@@ -39,7 +39,7 @@ export function parseGitHubRepo(source: string): { owner: string; repo: string }
  */
 function getAuthToken(): string | null {
   try {
-    const token = execSync('gh auth token', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const token = execFileSync('gh', ['auth', 'token'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
     if (token) return token;
   } catch {}
 

@@ -1,7 +1,7 @@
 import simpleGit from 'simple-git';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { CacheManager } from './cache';
 import { InstalledComponent, Skill, Agent } from './types';
 import { extractGitRepoName, logInfo, logSuccess, logError, ensureDir } from './utils';
@@ -158,7 +158,7 @@ export class GitInstaller {
     await ensureDir(cachePath);
 
     logInfo(`Extracting ${owner}/${repo}@${tag} to cache...`);
-    execSync(`tar -xzf "${tarballPath}" -C "${cachePath}" --strip-components=1`, {
+    execFileSync('tar', ['-xzf', tarballPath, '-C', cachePath, '--strip-components=1'], {
       stdio: 'pipe',
     });
 
