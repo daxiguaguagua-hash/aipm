@@ -1,0 +1,16 @@
+project: my-agent-project
+skills: []
+agents:
+  - id: my-coding-agent
+    source: https://github.com/anthropics/claude-code.git
+    version: main
+    model: claude-opus-4-6
+    system: |
+      You are an expert software engineer specializing in clean, maintainable code.
+      Follow the project's coding conventions carefully.
+    skills:
+      - everything-claude-code:tdd
+      - everything-claude-code:code-review
+mcps: []
+targets:
+  claude-code: {}
