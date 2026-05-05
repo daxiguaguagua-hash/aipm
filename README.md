@@ -155,9 +155,13 @@ Target platform to deploy your stack to:
 
 ---
 
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for the full version plan.
+
 ## Project Status
 
-- ✅ **Phase 3 In Progress** - Extended CLI with management commands
+- ✅ **v0.2.0 In Progress** - Extended CLI with management commands
 - ✅ Parsing and validation of `stack.yaml` (YAML + JSON)
 - ✅ Git installer for **skills and agents** with automatic caching
 - ✅ Adapters for all three platforms with skills and agents export (Claude Code: MCP + skills + agents)

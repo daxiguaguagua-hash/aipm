@@ -157,7 +157,13 @@ transport: stdio
 
 ## 项目状态
 
-- ✅ **第三阶段进行中** - 扩展 CLI 管理命令
+## 路线图
+
+完整版本计划见 [ROADMAP.md](./ROADMAP.md)。
+
+---
+
+- ✅ **v0.2.0 进行中** - 扩展 CLI 管理命令
 - ✅ `stack.yaml` 解析和验证（支持 YAML + JSON）
 - ✅ Git 安装器支持**技能和 Agents** 的自动缓存
 - ✅ 三个平台的 Adapters，Claude Code 支持 MCP + skills + agents 完整导出
