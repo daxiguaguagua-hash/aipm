@@ -1,9 +1,11 @@
 import simpleGit from 'simple-git';
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { CacheManager } from './cache';
 import { InstalledComponent, Skill, Agent } from './types';
 import { extractGitRepoName, logInfo, logSuccess, logError, ensureDir } from './utils';
+import { parseGitHubRepo, downloadRelease } from './github';
 
 /**
  * Installer handles cloning Git repositories into the cache
@@ -93,8 +95,19 @@ export class GitInstaller {
     version?: string
   ): Promise<InstalledComponent> {
     const cachePath = this.cacheManager.getCachePath(id);
+
+    // Try GitHub release download first (smaller, faster, no git clone overhead)
+    const ghRepo = parseGitHubRepo(source);
+    if (ghRepo) {
+      try {
+        return await this.downloadGitHubRelease(id, ghRepo.owner, ghRepo.repo, version, source, cachePath);
+      } catch {
+        logInfo(`GitHub release download failed for ${source}, falling back to git clone`);
+        // Fall through to git clone below
+      }
+    }
+
     const gitUrl = this.cleanGitUrl(source);
-    const repoName = extractGitRepoName(source);
     const targetVersion = version || 'latest';
 
     await ensureDir(path.dirname(cachePath));
@@ -123,6 +136,41 @@ export class GitInstaller {
       logError(`Failed to clone ${gitUrl}: ${(error as Error).message}`);
       throw error;
     }
+  }
+
+  /**
+   * Download a GitHub release tarball and extract to cache
+   */
+  private async downloadGitHubRelease(
+    id: string,
+    owner: string,
+    repo: string,
+    version: string | undefined,
+    source: string,
+    cachePath: string
+  ): Promise<InstalledComponent> {
+    const { tarballPath, tag } = await downloadRelease(owner, repo, version);
+
+    // Remove existing cache dir and extract
+    if (fs.existsSync(cachePath)) {
+      await fs.promises.rm(cachePath, { recursive: true });
+    }
+    await ensureDir(cachePath);
+
+    logInfo(`Extracting ${owner}/${repo}@${tag} to cache...`);
+    execSync(`tar -xzf "${tarballPath}" -C "${cachePath}" --strip-components=1`, {
+      stdio: 'pipe',
+    });
+
+    // Clean up temp tarball
+    try { await fs.promises.unlink(tarballPath); } catch {}
+
+    return {
+      id,
+      source,
+      version: tag,
+      path: cachePath,
+    };
   }
 
   /**
