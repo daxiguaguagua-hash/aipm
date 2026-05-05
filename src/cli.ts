@@ -155,7 +155,8 @@ program
   .command('install')
   .description('Install all skills, agents, and MCP servers from stack.yaml (supports yaml/yml/json)')
   .option('-f, --force', 'Force reinstall even if already installed')
-  .action(async (options: { force?: boolean }) => {
+  .option('-n, --dry-run', 'Show what would be installed without doing it')
+  .action(async (options: { force?: boolean; dryRun?: boolean }) => {
     try {
       const stackFile = findStackConfigFile();
       if (!stackFile) {
@@ -166,6 +167,24 @@ program
       // Load and parse stack config
       const stack = await loadStackConfigFromFile(path.resolve(stackFile));
       logInfo(`Loaded stack configuration for ${stack.project}`);
+
+      if (options.dryRun) {
+        const skillCount = (stack.skills || []).length;
+        const agentCount = (stack.agents || []).filter(a => a.source).length;
+        console.log();
+        console.log(chalk.bold('Dry run - would install:'));
+        console.log(`  ${skillCount} skill(s), ${agentCount} agent(s)`);
+        if (skillCount > 0) {
+          console.log(chalk.bold('  Skills:'));
+          (stack.skills || []).forEach(s => console.log(`    - ${chalk.cyan(s.id)} from ${chalk.gray(s.source)}`));
+        }
+        if (agentCount > 0) {
+          console.log(chalk.bold('  Agents:'));
+          (stack.agents || []).filter(a => a.source).forEach(a => console.log(`    - ${chalk.cyan(a.id)} from ${chalk.gray(a.source!)}`));
+        }
+        console.log();
+        process.exit(0);
+      }
 
       // Initialize cache
       const cacheManager = new CacheManager();
