@@ -94,16 +94,20 @@ export class ClaudeCodeAdapter implements Adapter {
       await ensureDir(path.dirname(settingsPath));
       await fs.promises.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
 
-      // Write skills.json if there are skills
+      // Write skills.json if there are skills, otherwise remove stale file
+      const skillsPath = path.join(outputDir, '.claude', 'skills.json');
       if (settings.skills && Object.keys(settings.skills).length > 0) {
-        const skillsPath = path.join(outputDir, '.claude', 'skills.json');
         await fs.promises.writeFile(skillsPath, JSON.stringify({ skills: settings.skills }, null, 2), 'utf8');
+      } else {
+        try { await fs.promises.unlink(skillsPath); } catch {}
       }
 
-      // Write agents.json if there are agents
+      // Write agents.json if there are agents, otherwise remove stale file
+      const agentsPath = path.join(outputDir, '.claude', 'agents.json');
       if (settings.agents && Object.keys(settings.agents).length > 0) {
-        const agentsPath = path.join(outputDir, '.claude', 'agents.json');
         await fs.promises.writeFile(agentsPath, JSON.stringify({ agents: settings.agents }, null, 2), 'utf8');
+      } else {
+        try { await fs.promises.unlink(agentsPath); } catch {}
       }
 
       logSuccess(`Exported Claude Code configuration to ${outputDir}/.claude/`);
