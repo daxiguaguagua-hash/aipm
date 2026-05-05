@@ -80,14 +80,16 @@ program
 program
   .command('init')
   .description('Initialize a new AI stack project')
-  .action(async () => {
+  .option('-f, --force', 'Overwrite existing stack.yaml if it exists')
+  .action(async (options: { force?: boolean }) => {
     try {
       const aiDir = getLocalAiDir();
       await ensureDir(aiDir);
 
       const stackFile = path.join(aiDir, 'stack.yaml');
-      if (fs.existsSync(stackFile)) {
+      if (fs.existsSync(stackFile) && !options.force) {
         logInfo('Stack file already exists at ' + stackFile);
+        logInfo('Use --force to overwrite');
         process.exit(0);
       }
 
