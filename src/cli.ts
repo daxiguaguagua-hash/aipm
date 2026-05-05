@@ -144,7 +144,8 @@ targets:
 program
   .command('install')
   .description('Install all skills, agents, and MCP servers from stack.yaml (supports yaml/yml/json)')
-  .action(async () => {
+  .option('-f, --force', 'Force reinstall even if already installed')
+  .action(async (options: { force?: boolean }) => {
     try {
       const stackFile = findStackConfigFile();
       if (!stackFile) {
@@ -162,6 +163,21 @@ program
 
       const installer = new GitInstaller(cacheManager);
 
+      // Force reinstall: delete all existing components first
+      if (options.force) {
+        logInfo('Force reinstalling all components...');
+        for (const skill of stack.skills || []) {
+          if (await cacheManager.isInstalled(skill.id)) {
+            await cacheManager.deleteComponent(skill.id);
+          }
+        }
+        for (const agent of stack.agents || []) {
+          if (agent.source && await cacheManager.isInstalled(agent.id)) {
+            await cacheManager.deleteComponent(agent.id);
+          }
+        }
+      }
+
       // Install all skills
       const installedSkills = [];
       for (const skill of stack.skills || []) {
@@ -173,7 +189,6 @@ program
       const installedAgents: InstalledComponent[] = [];
       for (const agent of stack.agents || []) {
         if (agent.source) {
-          // Only agents with source need installation
           const installed = await installer.installAgent(agent);
           installedAgents.push(installed);
         }
