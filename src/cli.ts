@@ -44,6 +44,9 @@ function findStackConfigFile(): string | null {
 }
 
 function getAiDir(): string {
+  if (!resolvedAiDir) {
+    findStackConfigFile(); // sets resolvedAiDir if config is found
+  }
   return resolvedAiDir || getLocalAiDir();
 }
 
