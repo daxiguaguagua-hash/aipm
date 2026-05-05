@@ -8,15 +8,9 @@ Git commit 自动执行，但不要 git push（除非明确要求）。
 
 # 每个小闭环的流程
 
-每次完成一个功能点或修复后，按以下顺序执行：
+使用 `/dev-cycle` skill。每次代码改动后走：build → test → commit → codex review → 修复直到通过。
 
-1. `npm run build && npm test` — 确保编译通过、40 个测试全绿
-2. `git add` + `git commit` — 提交改动
-3. `codex review --uncommitted` — 用 Codex 审计未提交的改动（如果有）
-4. 如果测试或审计发现问题，立即修复后重新走闭环
-5. 简短告知用户做了什么
-
-如果 `codex review` 报错或不可用，跳过审计步骤但要在告知中说明。
+如果 codex 不可用，跳过审计步骤但要说明。
 
 # 上下文管理
 
