@@ -522,7 +522,7 @@ program
       let updated = 0;
       let failed = 0;
 
-      // Update skills — installer handles safe swap internally
+      // Update skills — force reinstall by bumping installed version
       for (const skill of stack.skills || []) {
         if (id && skill.id !== id) continue;
         if (!(await cacheManager.isInstalled(skill.id))) {
@@ -531,6 +531,12 @@ program
         }
         logInfo(`Updating skill ${skill.id}...`);
         try {
+          // Force reinstall: mark installed version as stale
+          const meta = await cacheManager.getInstalledMetadata(skill.id);
+          if (meta) {
+            meta.version = meta.version + '-stale';
+            await cacheManager.saveMetadata(meta);
+          }
           await installer.installSkill(skill);
           updated++;
         } catch (err) {
@@ -539,7 +545,7 @@ program
         }
       }
 
-      // Update agents — installer handles safe swap internally
+      // Update agents — force reinstall by bumping installed version
       for (const agent of stack.agents || []) {
         if (id && agent.id !== id) continue;
         if (!agent.source) continue;
@@ -549,6 +555,11 @@ program
         }
         logInfo(`Updating agent ${agent.id}...`);
         try {
+          const meta = await cacheManager.getInstalledMetadata(agent.id);
+          if (meta) {
+            meta.version = meta.version + '-stale';
+            await cacheManager.saveMetadata(meta);
+          }
           await installer.installAgent(agent);
           updated++;
         } catch (err) {
