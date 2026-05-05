@@ -79,7 +79,7 @@ async function exportToPlatform(platform: string): Promise<void> {
   const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
 
   const adapter = getAdapter(platform as TargetPlatformName);
-  const outputDir = process.cwd();
+  const outputDir = path.dirname(getAiDir()); // project root (parent of .ai/)
   await adapter.exportConfig(stack, {
     skills: lock.skills || [],
     agents: lock.agents || [],
@@ -101,7 +101,7 @@ program
   .option('-f, --force', 'Overwrite existing stack.yaml if it exists')
   .action(async (options: { force?: boolean }) => {
     try {
-      const aiDir = getAiDir();
+      const aiDir = getLocalAiDir(); // init always creates in cwd, not parent
       await ensureDir(aiDir);
 
       const stackFile = path.join(aiDir, 'stack.yaml');
