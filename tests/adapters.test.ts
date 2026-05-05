@@ -280,4 +280,61 @@ describe('Adapters', () => {
     });
 
 
+  describe('ClaudeCodeAdapter MCP export', () => {
+    test('should export MCP servers to settings.json', async () => {
+      const adapter = getAdapter('claude-code');
+      const stack: StackConfig = {
+        project: 'test',
+        mcps: [
+          { id: 'filesystem', command: 'npx', args: ['-y', '@mcp/server-filesystem', '.'], transport: 'stdio' },
+          { id: 'github', command: 'npx', args: ['-y', '@mcp/server-github'], env: { GITHUB_TOKEN: 'test' } },
+        ],
+        targets: {
+          'claude-code': { mcps: ['filesystem', 'github'] },
+          openclaw: {},
+          opencode: {},
+        },
+      };
+      const installed = { skills: [], agents: [], mcps: [] };
+
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aipm-test-'));
+      await adapter.exportConfig(stack, installed, tempDir);
+
+      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
+      expect(fs.existsSync(settingsPath)).toBe(true);
+
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      expect(settings.mcpServers['filesystem']).toBeDefined();
+      expect(settings.mcpServers['filesystem'].command).toBe('npx');
+      expect(settings.mcpServers['filesystem'].transport).toBe('stdio');
+      expect(settings.mcpServers['github'].env).toEqual({ GITHUB_TOKEN: 'test' });
+
+      fs.rmSync(tempDir, { recursive: true });
+    });
+
+    test('should skip MCP not in stack configuration', async () => {
+      const adapter = getAdapter('claude-code');
+      const stack: StackConfig = {
+        project: 'test',
+        targets: {
+          'claude-code': { mcps: ['missing-mcp'] },
+          openclaw: {},
+          opencode: {},
+        },
+      };
+      const installed = { skills: [], agents: [], mcps: [] };
+
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aipm-test-'));
+      await adapter.exportConfig(stack, installed, tempDir);
+
+      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
+      expect(fs.existsSync(settingsPath)).toBe(true);
+
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      expect(Object.keys(settings.mcpServers)).toHaveLength(0);
+
+      fs.rmSync(tempDir, { recursive: true });
+    });
+  });
+
 });
