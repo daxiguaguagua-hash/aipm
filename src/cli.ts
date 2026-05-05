@@ -521,7 +521,7 @@ program
 
       let updated = 0;
 
-      // Update skills — installer handles cache internally
+      // Update skills
       for (const skill of stack.skills || []) {
         if (id && skill.id !== id) continue;
         if (!(await cacheManager.isInstalled(skill.id))) {
@@ -529,11 +529,17 @@ program
           continue;
         }
         logInfo(`Updating skill ${skill.id}...`);
-        await installer.installSkill(skill);
-        updated++;
+        await cacheManager.deleteComponent(skill.id);
+        try {
+          await installer.installSkill(skill);
+          updated++;
+        } catch (err) {
+          logError(`Failed to update ${skill.id}: ${(err as Error).message}`);
+          logInfo(`Run 'aipm install' to recover`);
+        }
       }
 
-      // Update agents — installer handles cache internally
+      // Update agents
       for (const agent of stack.agents || []) {
         if (id && agent.id !== id) continue;
         if (!agent.source) continue;
@@ -542,8 +548,14 @@ program
           continue;
         }
         logInfo(`Updating agent ${agent.id}...`);
-        await installer.installAgent(agent);
-        updated++;
+        await cacheManager.deleteComponent(agent.id);
+        try {
+          await installer.installAgent(agent);
+          updated++;
+        } catch (err) {
+          logError(`Failed to update ${agent.id}: ${(err as Error).message}`);
+          logInfo(`Run 'aipm install' to recover`);
+        }
       }
 
       if (id && updated === 0) {
