@@ -30,8 +30,13 @@ Git commit 自动执行，但不要 git push（除非明确要求）。
 
 aipm (AI Coding Stack Manager) — AI 编程栈管理器，TypeScript CLI 工具。管理 AI coding agent 的安装、导出、切换等操作。
 
+# 待办事项
+
+用户提出的需求和改进记录在 `TODO.md` 中。工作过程中如果遇到新的需求或 bug，追加到 TODO.md 中，不要存在记忆里。
+
 # 文档约定
 
 - README.md (英文，GitHub 首页默认展示)
 - README.zh.md (中文)
 - 英文 README 顶部链接到中文文档
+- TODO.md (项目待办事项)
