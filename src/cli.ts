@@ -47,6 +47,12 @@ function getAiDir(): string {
   return resolvedAiDir || getLocalAiDir();
 }
 
+function validateComponentId(id: string): void {
+  if (id.includes('..') || id.includes('/') || id.includes('\\') || id.trim() !== id || id.length === 0) {
+    throw new Error(`Invalid component id: "${id}". IDs must be simple names without path separators.`);
+  }
+}
+
 async function exportToPlatform(platform: string): Promise<void> {
   const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
   if (!validPlatforms.includes(platform as TargetPlatformName)) {
@@ -390,15 +396,14 @@ program
   .option('--json', 'Output in JSON format')
   .action(async (options: { json?: boolean }) => {
     try {
-      const aiDir = getAiDir();
-
-      // Check for stack config
+      // Check for stack config (must set resolvedAiDir before getAiDir())
       const stackFile = findStackConfigFile();
       if (!stackFile) {
         console.log(chalk.yellow('No AI stack initialized. Run ') + chalk.bold('aipm init') + chalk.yellow(' to start.'));
         process.exit(0);
       }
 
+      const aiDir = getAiDir();
       const stack = await loadStackConfigFromFile(stackFile);
       if (options.json) {
         const currentFile = path.join(aiDir, 'current');
@@ -579,6 +584,8 @@ program
   .description('Remove an installed component from cache')
   .action(async (id: string) => {
     try {
+      validateComponentId(id);
+
       const cacheManager = new CacheManager();
       await cacheManager.init();
 
@@ -714,6 +721,7 @@ program
   .description('Show detailed information about an installed component')
   .action(async (id: string) => {
     try {
+      validateComponentId(id);
       const cacheManager = new CacheManager();
       await cacheManager.init();
 
