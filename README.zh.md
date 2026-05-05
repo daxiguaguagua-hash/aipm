@@ -77,7 +77,11 @@ aipm use openclaw
 | `aipm install` | 从配置文件安装所有组件（支持 yaml/yml/json） |
 | `aipm export <platform>` | 导出配置到目标平台（支持 yaml/yml/json） |
 | `aipm use <platform>` | 切换 AI 环境到目标平台 |
+| `aipm status` | 查看当前环境状态 |
+| `aipm update [id]` | 更新所有或指定的组件到最新 |
+| `aipm uninstall <id>` | 移除已安装的组件 |
 | `aipm list` | 列出所有已安装组件 |
+| `aipm validate` | 验证配置文件有效性（不安装） |
 
 ## 支持的平台
 
@@ -151,13 +155,14 @@ transport: stdio
 
 ## 项目状态
 
-- ✅ **第二阶段 MVP 完成** - 所有核心功能已实现
-- ✅ `stack.yaml` 解析和验证
-- ✅ Git 安装器支持**技能、Agents 和 MCPs**
-- ✅ 三个平台的 Adapters，Claude Code 支持完整 skills 导出
-- ✅ 完整 CLI 支持 `init/install/export/use/list`
+- ✅ **第三阶段进行中** - 扩展 CLI 管理命令
+- ✅ `stack.yaml` 解析和验证（支持 YAML + JSON）
+- ✅ Git 安装器支持**技能和 Agents** 的自动缓存
+- ✅ 三个平台的 Adapters，Claude Code 支持 MCP + skills + agents 完整导出
+- ✅ 完整 CLI：`init/install/export/use/status/update/uninstall/list/validate`
 - ✅ 从远程 Git 仓库安装 Agents
 - ✅ 自动版本检查和升级
+- ✅ 环境状态总览和组件生命周期管理
 
 ---
 

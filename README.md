@@ -77,7 +77,11 @@ No more manual setup when you get a new computer.
 | `aipm install` | Install all components from stack config (supports yaml/yml/json) |
 | `aipm export <platform>` | Export configuration to target platform (supports yaml/yml/json) |
 | `aipm use <platform>` | Switch AI environment to target platform |
+| `aipm status` | Show current environment status |
+| `aipm update [id]` | Update all or a specific component to latest |
+| `aipm uninstall <id>` | Remove an installed component |
 | `aipm list` | List all installed components |
+| `aipm validate` | Validate stack configuration without installing |
 
 ## Supported Platforms
 
@@ -151,13 +155,14 @@ Target platform to deploy your stack to:
 
 ## Project Status
 
-- ✅ **Phase 2 MVP Complete** - All core features implemented
-- ✅ Parsing and validation of `stack.yaml`
-- ✅ Git installer for **skills, agents, and MCPs**
-- ✅ Adapters for all three platforms with skills export to Claude Code
-- ✅ Full CLI with `init/install/export/use/list`
+- ✅ **Phase 3 In Progress** - Extended CLI with management commands
+- ✅ Parsing and validation of `stack.yaml` (YAML + JSON)
+- ✅ Git installer for **skills and agents** with automatic caching
+- ✅ Adapters for all three platforms with skills and agents export (Claude Code: MCP + skills + agents)
+- ✅ Full CLI: `init/install/export/use/status/update/uninstall/list/validate`
 - ✅ Agent installation from remote Git repositories
 - ✅ Automatic version checking and upgrades
+- ✅ Environment status overview and component lifecycle management
 
 ---
 

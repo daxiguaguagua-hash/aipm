@@ -452,8 +452,59 @@ program
 
       await cacheManager.deleteComponent(id);
       logSuccess(`Uninstalled ${id}`);
+
+      // Update lock file if it exists
+      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      if (fs.existsSync(lockFile)) {
+        const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
+        lock.skills = (lock.skills || []).filter((s: InstalledComponent) => s.id !== id);
+        lock.agents = (lock.agents || []).filter((a: InstalledComponent) => a.id !== id);
+        lock.mcps = (lock.mcps || []).filter((m: InstalledComponent) => m.id !== id);
+        lock.timestamp = new Date().toISOString();
+        await fs.promises.writeFile(lockFile, JSON.stringify(lock, null, 2), 'utf8');
+      }
     } catch (error) {
       logError(`Uninstall failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * aipm validate - validate stack configuration without installing
+ */
+program
+  .command('validate')
+  .description('Validate stack configuration file without installing anything')
+  .action(async () => {
+    try {
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        logError(`No stack configuration file found. Run 'aipm init' first.`);
+        process.exit(1);
+      }
+
+      const stack = await loadStackConfigFromFile(path.resolve(stackFile));
+      logSuccess(`Configuration is valid for project "${stack.project}"`);
+
+      const skills = stack.skills?.length || 0;
+      const agents = stack.agents?.length || 0;
+      const mcps = stack.mcps?.length || 0;
+      const targets = Object.keys(stack.targets).length;
+
+      console.log();
+      console.log(chalk.bold('  Defined:'), `${skills} skills, ${agents} agents, ${mcps} MCPs`);
+      console.log(chalk.bold('  Targets:'), `${targets} platforms (${Object.keys(stack.targets).join(', ')})`);
+
+      // Check for inline agents (no source)
+      const inlineAgents = (stack.agents || []).filter(a => !a.source);
+      if (inlineAgents.length > 0) {
+        console.log(chalk.bold('  Inline agents:'), `${inlineAgents.length} (will be defined in export, not installed from Git)`);
+      }
+
+      console.log();
+      logInfo('Run ' + chalk.bold('aipm install') + ' to install all components.');
+    } catch (error) {
+      logError(`Validation failed: ${(error as Error).message}`);
       process.exit(1);
     }
   });
