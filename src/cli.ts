@@ -387,7 +387,8 @@ program
 program
   .command('status')
   .description('Show current AI environment status')
-  .action(async () => {
+  .option('--json', 'Output in JSON format')
+  .action(async (options: { json?: boolean }) => {
     try {
       const aiDir = getAiDir();
 
@@ -399,6 +400,30 @@ program
       }
 
       const stack = await loadStackConfigFromFile(stackFile);
+      if (options.json) {
+        const currentFile = path.join(aiDir, 'current');
+        let activePlatform: string | null = null;
+        if (fs.existsSync(currentFile)) {
+          activePlatform = (await fs.promises.readFile(currentFile, 'utf8')).trim();
+        }
+        const lockFile = path.join(aiDir, 'stack.lock');
+        let installed: any = null;
+        if (fs.existsSync(lockFile)) {
+          installed = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
+        }
+        console.log(JSON.stringify({
+          project: stack.project,
+          activePlatform,
+          installed,
+          defined: {
+            skills: stack.skills?.length || 0,
+            agents: stack.agents?.length || 0,
+            mcps: stack.mcps?.length || 0,
+          },
+        }, null, 2));
+        process.exit(0);
+      }
+
       console.log();
       console.log(chalk.bold('Project:'), chalk.cyan(stack.project));
 
@@ -587,7 +612,8 @@ program
 program
   .command('validate')
   .description('Validate stack configuration file without installing anything')
-  .action(async () => {
+  .option('--json', 'Output in JSON format')
+  .action(async (options: { json?: boolean }) => {
     try {
       const stackFile = findStackConfigFile();
       if (!stackFile) {
@@ -596,6 +622,22 @@ program
       }
 
       const stack = await loadStackConfigFromFile(path.resolve(stackFile));
+
+      if (options.json) {
+        console.log(JSON.stringify({
+          valid: true,
+          project: stack.project,
+          defined: {
+            skills: stack.skills?.length || 0,
+            agents: stack.agents?.length || 0,
+            mcps: stack.mcps?.length || 0,
+          },
+          targets: Object.keys(stack.targets),
+          inlineAgents: (stack.agents || []).filter(a => !a.source).length,
+        }, null, 2));
+        process.exit(0);
+      }
+
       logSuccess(`Configuration is valid for project "${stack.project}"`);
 
       const skills = stack.skills?.length || 0;
