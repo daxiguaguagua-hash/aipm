@@ -675,6 +675,36 @@ program
         process.exit(0);
       }
 
+      // Validate target references
+      const skillIds = new Set((stack.skills || []).map(s => s.id));
+      const agentIds = new Set((stack.agents || []).map(a => a.id));
+      const mcpIds = new Set((stack.mcps || []).map(m => m.id));
+
+      const warnings: string[] = [];
+      for (const [platform, targetConfig] of Object.entries(stack.targets)) {
+        for (const skillId of (targetConfig as any).skills || []) {
+          if (!skillIds.has(skillId)) {
+            warnings.push(`target "${platform}" references undefined skill "${skillId}"`);
+          }
+        }
+        for (const agentId of (targetConfig as any).agents || []) {
+          if (!agentIds.has(agentId)) {
+            warnings.push(`target "${platform}" references undefined agent "${agentId}"`);
+          }
+        }
+        for (const mcpId of (targetConfig as any).mcps || []) {
+          if (!mcpIds.has(mcpId)) {
+            warnings.push(`target "${platform}" references undefined MCP "${mcpId}"`);
+          }
+        }
+      }
+
+      if (warnings.length > 0) {
+        console.log();
+        console.log(chalk.yellow('Warnings:'));
+        warnings.forEach(w => console.log(chalk.yellow(`  ! ${w}`)));
+      }
+
       logSuccess(`Configuration is valid for project "${stack.project}"`);
 
       const skills = stack.skills?.length || 0;

@@ -1,5 +1,11 @@
 project: my-agent-project
-skills: []
+skills:
+  - id: everything-claude-code:tdd
+    source: github:everything-claude-code/tdd-skill
+    entry: ./main.md
+  - id: everything-claude-code:code-review
+    source: github:everything-claude-code/code-review-skill
+    entry: ./main.md
 agents:
   - id: my-coding-agent
     source: https://github.com/anthropics/claude-code.git
