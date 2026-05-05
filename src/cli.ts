@@ -96,31 +96,46 @@ program
       // Create default stack.yaml
       const defaultStack = `project: my-ai-stack
 
-# Skills are reusable AI capability modules
-# 技能是可复用的 AI 能力模块
+# ==========================================
+# Skills — reusable AI capability modules
+# 技能 — 可复用的 AI 能力模块
+# ==========================================
 skills:
   # Example:
   # 示例：
   # - id: code-review
   #   source: github:anthonyclays/aipm-skill-code-review
   #   entry: ./main.md
+  #   version: v0.3.1
 
-# Agents orchestrate multiple skills
-# Agents with a source will be installed from Git
+# ==========================================
+# Agents — skill orchestrators
 # Agent 编排多个技能
-# 带有 source 的 Agent 会从 Git 自动安装
+# Two types 两种类型：
+#   1. Git Agent (with source): auto-installed from Git
+#      带 source 的 Agent 会从 Git 自动安装
+#   2. Inline Agent (no source): defined here, exported directly
+#      不带 source 的 inline Agent 直接定义，由平台导出
+# ==========================================
 agents:
-  # Example:
-  # 示例：
-  # - id: planner
+  # --- Git Agent example 示例 ---
+  # - id: senior-engineer
   #   source: https://github.com/your-org/team-agents.git
   #   version: v1.0.0
   #   model: claude-sonnet
-  #   system: You are an expert planning agent...
+  #   system: You are a senior engineer...
   #   skills: [code-review]
 
-# MCP (Model Context Protocol) external tools
-# MCP（Model Context Protocol）外部工具
+  # --- Inline Agent example 示例 ---
+  # - id: quick-planner
+  #   model: claude-haiku
+  #   system: You are a fast planning assistant. Keep responses short.
+  #   skills: []
+
+# ==========================================
+# MCP — external Model Context Protocol tools
+# MCP — 外部 Model Context Protocol 工具
+# ==========================================
 mcps:
   # Example:
   # 示例：
@@ -128,15 +143,23 @@ mcps:
   #   command: npx
   #   args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
 
-# Target platform configurations
-# 目标平台配置
+# ==========================================
+# Targets — platform-specific configurations
+# 目标平台 — 各平台特定配置
+# ==========================================
 targets:
   claude-code:
     mcps: []
+    # skills: [code-review]
+    # agents: [senior-engineer, quick-planner]
+
   openclaw:
     skills: []
+    # agents: [senior-engineer]
+
   opencode:
     mcps: []
+    # skills: [code-review]
 `;
 
       await fs.promises.writeFile(stackFile, defaultStack, 'utf8');
