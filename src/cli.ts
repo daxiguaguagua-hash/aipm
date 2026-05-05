@@ -520,6 +520,7 @@ program
       const installer = new GitInstaller(cacheManager);
 
       let updated = 0;
+      let failed = 0;
 
       // Update skills
       for (const skill of stack.skills || []) {
@@ -534,8 +535,8 @@ program
           await installer.installSkill(skill);
           updated++;
         } catch (err) {
+          failed++;
           logError(`Failed to update ${skill.id}: ${(err as Error).message}`);
-          logInfo(`Run 'aipm install' to recover`);
         }
       }
 
@@ -553,14 +554,19 @@ program
           await installer.installAgent(agent);
           updated++;
         } catch (err) {
+          failed++;
           logError(`Failed to update ${agent.id}: ${(err as Error).message}`);
-          logInfo(`Run 'aipm install' to recover`);
         }
       }
 
-      if (id && updated === 0) {
+      if (id && updated === 0 && failed === 0) {
         logInfo(`Component ${id} not found in stack configuration`);
         process.exit(0);
+      }
+
+      if (failed > 0) {
+        logError(`${failed} component(s) failed to update. Run 'aipm install' to recover.`);
+        process.exit(1);
       }
 
       // Refresh lock file with current cache state
