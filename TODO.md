@@ -2,6 +2,8 @@
 
 优先级从高到低排列。
 
+进度接管说明见 `CODEX.md`。`TODO.md` 是用户在体验小版本后亲自记录的反馈池，不是 agent 自动执行队列。具体执行范围由用户确认后再进入 `CODEX.md`。
+
 - [*] **工作流提取为 skill** — 将当前开发闭环（build → test → commit → codex review → 修复）封装为可复用的 skill。以后其他项目也能直接用这套自动化流程。优先级最高：这是自己的效率工具，做好了一劳永逸。
 
 - [*] **GitHub 作为后端** — 使用 GitHub Releases / API 作为 skills 和 agents 的分发后端。支持从 GitHub Release assets 下载安装，支持私有仓库认证。依赖多配置支持。
