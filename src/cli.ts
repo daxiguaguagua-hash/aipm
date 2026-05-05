@@ -589,4 +589,47 @@ program
     }
   });
 
+/**
+ * aipm clean - remove all installed components from cache
+ */
+program
+  .command('clean')
+  .description('Remove all installed components from cache')
+  .option('-f, --force', 'Skip confirmation prompt')
+  .action(async (options: { force?: boolean }) => {
+    try {
+      const cacheManager = new CacheManager();
+      await cacheManager.init();
+      const installed = await cacheManager.listInstalled();
+
+      if (installed.length === 0) {
+        logInfo('No components to clean');
+        process.exit(0);
+      }
+
+      if (!options.force) {
+        console.log(chalk.yellow(`This will remove ${installed.length} component(s) from cache:`));
+        installed.forEach(c => console.log(`  ${chalk.cyan(c.id)} @ ${chalk.yellow(c.version)}`));
+        console.log();
+        logInfo('Use ' + chalk.bold('aipm clean --force') + ' to confirm removal.');
+        process.exit(0);
+      }
+
+      for (const comp of installed) {
+        await cacheManager.deleteComponent(comp.id);
+      }
+
+      // Clear lock file
+      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      if (fs.existsSync(lockFile)) {
+        await fs.promises.unlink(lockFile);
+      }
+
+      logSuccess(`Cleaned ${installed.length} component(s)`);
+    } catch (error) {
+      logError(`Clean failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();
