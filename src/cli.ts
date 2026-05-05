@@ -30,6 +30,37 @@ function findStackConfigFile(): string | null {
   return null;
 }
 
+async function exportToPlatform(platform: string): Promise<void> {
+  const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
+  if (!validPlatforms.includes(platform as TargetPlatformName)) {
+    logError(`Invalid platform: ${platform}. Valid platforms: ${validPlatforms.join(', ')}`);
+    process.exit(1);
+  }
+
+  const stackFile = findStackConfigFile();
+  if (!stackFile) {
+    logError(`No stack configuration file found. Run 'aipm init' first.`);
+    process.exit(1);
+  }
+
+  const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+  if (!fs.existsSync(lockFile)) {
+    logError(`Lock file not found at ${lockFile}. Run 'aipm install' first.`);
+    process.exit(1);
+  }
+
+  const stack = await loadStackConfigFromFile(stackFile);
+  const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
+
+  const adapter = getAdapter(platform as TargetPlatformName);
+  const outputDir = process.cwd();
+  await adapter.exportConfig(stack, {
+    skills: lock.skills || [],
+    agents: lock.agents || [],
+    mcps: lock.mcps || [],
+  }, outputDir);
+}
+
 program
   .name('aipm')
   .description('AI Coding Stack Manager - 统一管理你的 AI 编程环境')
@@ -177,37 +208,7 @@ program
   .description('Export configuration for the specified target platform (supports yaml/yml/json)')
   .action(async (platform: string) => {
     try {
-      const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
-      if (!validPlatforms.includes(platform as TargetPlatformName)) {
-        logError(`Invalid platform: ${platform}. Valid platforms: ${validPlatforms.join(', ')}`);
-        process.exit(1);
-      }
-
-      const stackFile = findStackConfigFile();
-      if (!stackFile) {
-        logError(`No stack configuration file found. Run 'aipm init' first.`);
-        process.exit(1);
-      }
-
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
-      if (!fs.existsSync(lockFile)) {
-        logError(`Lock file not found at ${lockFile}. Run 'aipm install' first.`);
-        process.exit(1);
-      }
-
-      // Load config and lock
-      const stack = await loadStackConfigFromFile(stackFile);
-      const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
-
-      // Get adapter and export
-      const adapter = getAdapter(platform as TargetPlatformName);
-      const outputDir = process.cwd();
-      await adapter.exportConfig(stack, {
-        skills: lock.skills || [],
-        agents: lock.agents || [],
-        mcps: lock.mcps || [],
-      }, outputDir);
-
+      await exportToPlatform(platform);
       logSuccess(`Export complete for ${platform}`);
     } catch (error) {
       logError(`Export failed: ${(error as Error).message}`);
@@ -223,36 +224,11 @@ program
   .description('Switch AI environment to the specified platform')
   .action(async (platform: string) => {
     try {
-      const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
-      if (!validPlatforms.includes(platform as TargetPlatformName)) {
-        logError(`Invalid platform: ${platform}. Valid platforms: ${validPlatforms.join(', ')}`);
-        process.exit(1);
-      }
+      await exportToPlatform(platform);
 
-      const stackFile = findStackConfigFile();
-      if (!stackFile) {
-        logError(`No stack configuration file found. Run 'aipm init' first.`);
-        process.exit(1);
-      }
-
-      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
-      if (!fs.existsSync(lockFile)) {
-        logError(`Lock file not found at ${lockFile}. Run 'aipm install' first.`);
-        process.exit(1);
-      }
-
-      // Load config and lock
-      const stack = await loadStackConfigFromFile(stackFile);
-      const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
-
-      // Get adapter and export
-      const adapter = getAdapter(platform as TargetPlatformName);
-      const outputDir = process.cwd();
-      await adapter.exportConfig(stack, {
-        skills: lock.skills || [],
-        agents: lock.agents || [],
-        mcps: lock.mcps || [],
-      }, outputDir);
+      // Write current platform state
+      const currentFile = path.join(getLocalAiDir(), 'current');
+      await fs.promises.writeFile(currentFile, platform, 'utf8');
 
       logSuccess(`Switched to ${chalk.bold(platform)} environment`);
     } catch (error) {

@@ -63,6 +63,22 @@ export class ClaudeCodeAdapter implements Adapter {
         }
       }
 
+      // Add agents from the stack configuration
+      if (targetConfig && targetConfig.agents) {
+        settings.agents = {};
+        for (const agentId of targetConfig.agents) {
+          const installedAgent = installed.agents.find(a => a.id === agentId);
+          if (!installedAgent) {
+            logError(`Agent ${agentId} not installed, skipping`);
+            continue;
+          }
+          settings.agents[agentId] = {
+            path: installedAgent.path,
+            version: installedAgent.version,
+          };
+        }
+      }
+
       // Write settings.json for MCP configuration
       const settingsPath = path.join(outputDir, '.claude', 'settings.json');
       await ensureDir(path.dirname(settingsPath));
@@ -72,6 +88,12 @@ export class ClaudeCodeAdapter implements Adapter {
       if (settings.skills && Object.keys(settings.skills).length > 0) {
         const skillsPath = path.join(outputDir, '.claude', 'skills.json');
         await fs.promises.writeFile(skillsPath, JSON.stringify({ skills: settings.skills }, null, 2), 'utf8');
+      }
+
+      // Write agents.json if there are agents
+      if (settings.agents && Object.keys(settings.agents).length > 0) {
+        const agentsPath = path.join(outputDir, '.claude', 'agents.json');
+        await fs.promises.writeFile(agentsPath, JSON.stringify({ agents: settings.agents }, null, 2), 'utf8');
       }
 
       logSuccess(`Exported Claude Code configuration to ${outputDir}/.claude/`);

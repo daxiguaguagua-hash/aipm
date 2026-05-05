@@ -71,5 +71,43 @@ describe('Adapters', () => {
       // Cleanup
       fs.rmSync(tempDir, { recursive: true });
     });
+
+    test('ClaudeCodeAdapter should export agents', async () => {
+      const adapter = getAdapter('claude-code');
+      const stack: StackConfig = {
+        project: 'test',
+        agents: [
+          { id: 'test-agent', source: 'https://example.com/agent', skills: ['test-skill'] },
+        ],
+        targets: {
+          'claude-code': {
+            agents: ['test-agent'],
+          },
+          openclaw: {},
+          opencode: {},
+        },
+      };
+      const installed = {
+        skills: [],
+        agents: [
+          { id: 'test-agent', source: 'https://example.com/agent', version: 'v2.0.0', path: '/tmp/cache/test-agent' },
+        ],
+        mcps: [],
+      };
+
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aipm-test-'));
+      await adapter.exportConfig(stack, installed, tempDir);
+
+      const agentsPath = path.join(tempDir, '.claude', 'agents.json');
+      expect(fs.existsSync(agentsPath)).toBe(true);
+
+      const agentsJson = JSON.parse(fs.readFileSync(agentsPath, 'utf8'));
+      expect(agentsJson.agents['test-agent']).toEqual({
+        path: '/tmp/cache/test-agent',
+        version: 'v2.0.0',
+      });
+
+      fs.rmSync(tempDir, { recursive: true });
+    });
   });
 });
