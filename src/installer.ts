@@ -179,6 +179,11 @@ export class GitInstaller {
    * @returns Clean URL for git clone
    */
   private cleanGitUrl(url: string): string {
+    // Convert github:owner/repo to https URL for git clone
+    const ghMatch = url.match(/^github:(.+)\/(.+)/);
+    if (ghMatch) {
+      return `https://github.com/${ghMatch[1]}/${ghMatch[2]}.git`;
+    }
     return url.replace(/^git\+/, '');
   }
 }
