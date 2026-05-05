@@ -8,8 +8,8 @@ import { loadStackConfigFromFile } from './parser';
 import { CacheManager } from './cache';
 import { GitInstaller } from './installer';
 import { getAdapter, TargetPlatformName } from './adapters';
-import { ensureDir, getLocalAiDir, getLocalExportsDir, logInfo, logSuccess, logError } from './utils';
-import { StackConfig, InstalledComponent } from './types';
+import { ensureDir, getLocalAiDir, logInfo, logSuccess, logError } from './utils';
+import { InstalledComponent } from './types';
 
 const program = new Command();
 const DEFAULT_STACK_FILE_YAML = '.ai/stack.yaml';
@@ -265,6 +265,195 @@ program
       console.log(`Total: ${installed.length} component(s)`);
     } catch (error) {
       logError(`List failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * aipm status - show current environment status
+ */
+program
+  .command('status')
+  .description('Show current AI environment status')
+  .action(async () => {
+    try {
+      const aiDir = getLocalAiDir();
+
+      // Check for stack config
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        console.log(chalk.yellow('No AI stack initialized. Run ') + chalk.bold('aipm init') + chalk.yellow(' to start.'));
+        process.exit(0);
+      }
+
+      const stack = await loadStackConfigFromFile(stackFile);
+      console.log();
+      console.log(chalk.bold('Project:'), chalk.cyan(stack.project));
+
+      // Active platform
+      const currentFile = path.join(aiDir, 'current');
+      if (fs.existsSync(currentFile)) {
+        const activePlatform = (await fs.promises.readFile(currentFile, 'utf8')).trim();
+        console.log(chalk.bold('Active platform:'), chalk.green(activePlatform));
+      } else {
+        console.log(chalk.bold('Active platform:'), chalk.gray('none (run ') + chalk.bold('aipm use <platform>') + chalk.gray(' to activate)'));
+      }
+
+      // Installed components
+      const lockFile = path.join(aiDir, 'stack.lock');
+      if (fs.existsSync(lockFile)) {
+        const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
+        const total = (lock.skills?.length || 0) + (lock.agents?.length || 0) + (lock.mcps?.length || 0);
+        console.log(chalk.bold('Installed:'), `${lock.skills?.length || 0} skills, ${lock.agents?.length || 0} agents, ${lock.mcps?.length || 0} MCPs (${total} total)`);
+
+        if (lock.timestamp) {
+          console.log(chalk.bold('Last install:'), new Date(lock.timestamp).toLocaleString());
+        }
+
+        if (total > 0) {
+          console.log();
+          if (lock.skills?.length > 0) {
+            console.log(chalk.bold('  Skills:'));
+            lock.skills.forEach((s: InstalledComponent) => {
+              console.log(`    ${chalk.cyan(s.id)} @ ${chalk.yellow(s.version)}`);
+            });
+          }
+          if (lock.agents?.length > 0) {
+            console.log(chalk.bold('  Agents:'));
+            lock.agents.forEach((a: InstalledComponent) => {
+              console.log(`    ${chalk.cyan(a.id)} @ ${chalk.yellow(a.version)}`);
+            });
+          }
+        }
+      } else {
+        console.log(chalk.bold('Installed:'), chalk.gray('nothing yet (run ') + chalk.bold('aipm install') + chalk.gray(' to install)'));
+      }
+
+      // Defined but not installed
+      const definedSkills = stack.skills?.length || 0;
+      const definedAgents = stack.agents?.length || 0;
+      const definedMcps = stack.mcps?.length || 0;
+      const totalDefined = definedSkills + definedAgents + definedMcps;
+      if (totalDefined > 0) {
+        console.log(chalk.bold('Defined in stack:'), `${definedSkills} skills, ${definedAgents} agents, ${definedMcps} MCPs`);
+        console.log();
+        console.log(chalk.gray('  Run ') + chalk.bold('aipm install') + chalk.gray(' to install all defined components.'));
+      }
+
+      console.log();
+    } catch (error) {
+      logError(`Status failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * aipm update [id] - update installed components to latest version
+ */
+program
+  .command('update [id]')
+  .description('Update all or a specific installed component to the latest version')
+  .action(async (id?: string) => {
+    try {
+      const stackFile = findStackConfigFile();
+      if (!stackFile) {
+        logError(`No stack configuration file found. Run 'aipm init' first.`);
+        process.exit(1);
+      }
+
+      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      if (!fs.existsSync(lockFile)) {
+        logError(`Lock file not found. Run 'aipm install' first.`);
+        process.exit(1);
+      }
+
+      const stack = await loadStackConfigFromFile(path.resolve(stackFile));
+      const cacheManager = new CacheManager();
+      await cacheManager.init();
+      const installer = new GitInstaller(cacheManager);
+
+      let updated = 0;
+
+      // Update skills
+      for (const skill of stack.skills || []) {
+        if (id && skill.id !== id) continue;
+        if (!(await cacheManager.isInstalled(skill.id))) {
+          logInfo(`Skill ${skill.id} not installed, skipping`);
+          continue;
+        }
+        logInfo(`Updating skill ${skill.id}...`);
+        await cacheManager.deleteComponent(skill.id);
+        await installer.installSkill(skill);
+        updated++;
+      }
+
+      // Update agents
+      for (const agent of stack.agents || []) {
+        if (id && agent.id !== id) continue;
+        if (!agent.source) continue;
+        if (!(await cacheManager.isInstalled(agent.id))) {
+          logInfo(`Agent ${agent.id} not installed, skipping`);
+          continue;
+        }
+        logInfo(`Updating agent ${agent.id}...`);
+        await cacheManager.deleteComponent(agent.id);
+        await installer.installAgent(agent);
+        updated++;
+      }
+
+      if (id && updated === 0) {
+        logInfo(`Component ${id} not found in stack configuration`);
+        process.exit(0);
+      }
+
+      // Refresh lock file with current cache state
+      const updatedSkills: InstalledComponent[] = [];
+      for (const skill of stack.skills || []) {
+        const meta = await cacheManager.getInstalledMetadata(skill.id);
+        if (meta) updatedSkills.push(meta);
+      }
+      const updatedAgents: InstalledComponent[] = [];
+      for (const agent of stack.agents || []) {
+        if (!agent.source) continue;
+        const meta = await cacheManager.getInstalledMetadata(agent.id);
+        if (meta) updatedAgents.push(meta);
+      }
+
+      await fs.promises.writeFile(lockFile, JSON.stringify({
+        project: stack.project,
+        skills: updatedSkills,
+        agents: updatedAgents,
+        mcps: [],
+        timestamp: new Date().toISOString(),
+      }, null, 2), 'utf8');
+
+      logSuccess(`Updated ${updated} component(s)`);
+    } catch (error) {
+      logError(`Update failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * aipm uninstall <id> - remove an installed component
+ */
+program
+  .command('uninstall <id>')
+  .description('Remove an installed component from cache')
+  .action(async (id: string) => {
+    try {
+      const cacheManager = new CacheManager();
+      await cacheManager.init();
+
+      if (!(await cacheManager.isInstalled(id))) {
+        logInfo(`Component ${id} is not installed`);
+        process.exit(0);
+      }
+
+      await cacheManager.deleteComponent(id);
+      logSuccess(`Uninstalled ${id}`);
+    } catch (error) {
+      logError(`Uninstall failed: ${(error as Error).message}`);
       process.exit(1);
     }
   });
