@@ -73,15 +73,17 @@ aipm use openclaw
 
 | 命令 | 说明 |
 |---------|-------------|
-| `aipm init` | 初始化新的 aipm 项目 |
-| `aipm install` | 从配置文件安装所有组件（支持 yaml/yml/json） |
-| `aipm export <platform>` | 导出配置到目标平台（支持 yaml/yml/json） |
+| `aipm init` | 初始化新的 aipm 项目（`--force` 覆盖已有） |
+| `aipm install` | 安装所有组件（`--force` 强制重装，`--dry-run` 预览） |
+| `aipm export <platform>` | 导出配置到目标平台 |
 | `aipm use <platform>` | 切换 AI 环境到目标平台 |
 | `aipm status` | 查看当前环境状态 |
 | `aipm update [id]` | 更新所有或指定的组件到最新 |
 | `aipm uninstall <id>` | 移除已安装的组件 |
-| `aipm list` | 列出所有已安装组件 |
+| `aipm list` | 列出所有已安装组件（`--json` 机器可读） |
+| `aipm info <id>` | 查看某个组件的详细信息 |
 | `aipm validate` | 验证配置文件有效性（不安装） |
+| `aipm clean` | 清除所有缓存组件（`--force` 确认） |
 
 ## 支持的平台
 

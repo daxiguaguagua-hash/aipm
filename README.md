@@ -73,15 +73,17 @@ No more manual setup when you get a new computer.
 
 | Command | Description |
 |---------|-------------|
-| `aipm init` | Initialize a new aipm project |
-| `aipm install` | Install all components from stack config (supports yaml/yml/json) |
-| `aipm export <platform>` | Export configuration to target platform (supports yaml/yml/json) |
+| `aipm init` | Initialize a new aipm project (`--force` to overwrite) |
+| `aipm install` | Install all components (`--force` to reinstall, `--dry-run` to preview) |
+| `aipm export <platform>` | Export configuration to target platform |
 | `aipm use <platform>` | Switch AI environment to target platform |
 | `aipm status` | Show current environment status |
 | `aipm update [id]` | Update all or a specific component to latest |
 | `aipm uninstall <id>` | Remove an installed component |
-| `aipm list` | List all installed components |
+| `aipm list` | List all installed components (`--json` for machine output) |
+| `aipm info <id>` | Show detailed information about a component |
 | `aipm validate` | Validate stack configuration without installing |
+| `aipm clean` | Remove all cached components (`--force` to confirm) |
 
 ## Supported Platforms
 
