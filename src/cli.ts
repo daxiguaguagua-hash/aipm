@@ -17,16 +17,24 @@ const DEFAULT_STACK_FILE_YML = '.ai/stack.yml';
 const DEFAULT_STACK_FILE_JSON = '.ai/stack.json';
 
 // Try to find stack file in order: yaml -> yml -> json
+// Searches current directory first, then parent directories
 function findStackConfigFile(): string | null {
-  if (fs.existsSync(DEFAULT_STACK_FILE_YAML)) {
-    return DEFAULT_STACK_FILE_YAML;
+  const files = [DEFAULT_STACK_FILE_YAML, DEFAULT_STACK_FILE_YML, DEFAULT_STACK_FILE_JSON];
+  let dir = process.cwd();
+
+  while (true) {
+    for (const file of files) {
+      const fullPath = path.join(dir, file);
+      if (fs.existsSync(fullPath)) {
+        return fullPath;
+      }
+    }
+
+    const parent = path.dirname(dir);
+    if (parent === dir) break; // reached filesystem root
+    dir = parent;
   }
-  if (fs.existsSync(DEFAULT_STACK_FILE_YML)) {
-    return DEFAULT_STACK_FILE_YML;
-  }
-  if (fs.existsSync(DEFAULT_STACK_FILE_JSON)) {
-    return DEFAULT_STACK_FILE_JSON;
-  }
+
   return null;
 }
 
