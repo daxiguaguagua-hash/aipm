@@ -13,4 +13,11 @@ agents:
       - everything-claude-code:code-review
 mcps: []
 targets:
-  claude-code: {}
+  claude-code:
+    agents:
+      - my-coding-agent
+    skills:
+      - everything-claude-code:tdd
+      - everything-claude-code:code-review
+  openclaw: {}
+  opencode: {}
