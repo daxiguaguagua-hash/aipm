@@ -258,13 +258,36 @@ program
 program
   .command('list')
   .description('List all installed components')
-  .action(async () => {
+  .option('--json', 'Output in JSON format')
+  .action(async (options: { json?: boolean }) => {
     try {
-      const cacheManager = new CacheManager();
-      await cacheManager.init();
-      const installed = await cacheManager.listInstalled();
+      // Prefer lock file for richer data, fall back to cache
+      const lockFile = path.join(getLocalAiDir(), 'stack.lock');
+      let skills: InstalledComponent[] = [];
+      let agents: InstalledComponent[] = [];
+      let mcps: InstalledComponent[] = [];
 
-      if (installed.length === 0) {
+      if (fs.existsSync(lockFile)) {
+        const lock = JSON.parse(await fs.promises.readFile(lockFile, 'utf8'));
+        skills = lock.skills || [];
+        agents = lock.agents || [];
+        mcps = lock.mcps || [];
+      } else {
+        const cacheManager = new CacheManager();
+        await cacheManager.init();
+        const all = await cacheManager.listInstalled();
+        // Without lock file we can't distinguish types, list all as skills
+        skills = all;
+      }
+
+      const total = skills.length + agents.length + mcps.length;
+
+      if (options.json) {
+        console.log(JSON.stringify({ skills, agents, mcps, total }, null, 2));
+        process.exit(0);
+      }
+
+      if (total === 0) {
         logInfo('No components installed');
         process.exit(0);
       }
@@ -272,12 +295,25 @@ program
       console.log();
       console.log(chalk.bold('Installed components:'));
       console.log();
-      installed.forEach(comp => {
-        console.log(`  ${chalk.cyan(comp.id)} @ ${chalk.yellow(comp.version)}`);
-        console.log(`    ${chalk.gray(comp.source)}`);
-      });
+
+      if (skills.length > 0) {
+        console.log(chalk.bold('  Skills:'));
+        skills.forEach(s => {
+          console.log(`    ${chalk.cyan(s.id)} @ ${chalk.yellow(s.version)}`);
+          console.log(`      ${chalk.gray(s.source)}`);
+        });
+      }
+
+      if (agents.length > 0) {
+        console.log(chalk.bold('  Agents:'));
+        agents.forEach(a => {
+          console.log(`    ${chalk.cyan(a.id)} @ ${chalk.yellow(a.version)}`);
+          console.log(`      ${chalk.gray(a.source)}`);
+        });
+      }
+
       console.log();
-      console.log(`Total: ${installed.length} component(s)`);
+      console.log(`Total: ${total} component(s) (${skills.length} skills, ${agents.length} agents, ${mcps.length} MCPs)`);
     } catch (error) {
       logError(`List failed: ${(error as Error).message}`);
       process.exit(1);
