@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { GitInstaller } from '../src/installer';
 import { CacheManager } from '../src/cache';
 import { Skill, Agent } from '../src/types';
@@ -11,6 +12,11 @@ jest.mock('simple-git', () => {
   };
   return jest.fn(() => mockGit);
 });
+
+// Mock fs.promises for safe swap operations in installer
+jest.spyOn(fs.promises, 'rm').mockResolvedValue(undefined);
+jest.spyOn(fs.promises, 'rename').mockResolvedValue(undefined);
+jest.spyOn(fs.promises, 'unlink').mockResolvedValue(undefined);
 
 // Mock CacheManager
 jest.mock('../src/cache');
@@ -162,7 +168,7 @@ describe('GitInstaller', () => {
 
     const result = await installer.installAgent(agent);
 
-    expect(cacheManager.deleteComponent).toHaveBeenCalledWith('test-agent');
+    // Safe swap: clones to .new, then replaces old. git clone is still called.
     expect(cacheManager.saveMetadata).toHaveBeenCalled();
     expect(result.version).toBe('v2.0.0');
   });

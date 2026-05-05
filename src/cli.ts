@@ -522,7 +522,7 @@ program
       let updated = 0;
       let failed = 0;
 
-      // Update skills
+      // Update skills — installer handles safe swap internally
       for (const skill of stack.skills || []) {
         if (id && skill.id !== id) continue;
         if (!(await cacheManager.isInstalled(skill.id))) {
@@ -530,7 +530,6 @@ program
           continue;
         }
         logInfo(`Updating skill ${skill.id}...`);
-        await cacheManager.deleteComponent(skill.id);
         try {
           await installer.installSkill(skill);
           updated++;
@@ -540,7 +539,7 @@ program
         }
       }
 
-      // Update agents
+      // Update agents — installer handles safe swap internally
       for (const agent of stack.agents || []) {
         if (id && agent.id !== id) continue;
         if (!agent.source) continue;
@@ -549,7 +548,6 @@ program
           continue;
         }
         logInfo(`Updating agent ${agent.id}...`);
-        await cacheManager.deleteComponent(agent.id);
         try {
           await installer.installAgent(agent);
           updated++;

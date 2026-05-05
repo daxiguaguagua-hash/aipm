@@ -64,9 +64,24 @@ export class GitInstaller {
         logSuccess(`${componentType.charAt(0).toUpperCase() + componentType.slice(1)} ${id} already installed at version ${existing.version}`);
         return existing;
       }
-      // If version different, we need to reinstall/upgrade
+      // If version different, reinstall to new dir first, then swap
       logInfo(`Updating ${componentType} ${id} to version ${version || 'latest'}`);
-      await this.cacheManager.deleteComponent(id);
+      const tmpId = id + '.new';
+      const component = await this.cloneRepository(tmpId, source, version);
+      const tmpPath = this.cacheManager.getCachePath(tmpId);
+      const realPath = this.cacheManager.getCachePath(id);
+
+      // Swap: remove old, move new into place
+      await fs.promises.rm(realPath, { recursive: true });
+      await fs.promises.rename(tmpPath, realPath);
+
+      // Update component id and save metadata
+      component.id = id;
+      component.path = realPath;
+      await this.cacheManager.saveMetadata(component);
+
+      logSuccess(`Installed ${componentType} ${id}@${component.version}`);
+      return component;
     }
 
     const component: InstalledComponent = await this.cloneRepository(
