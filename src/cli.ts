@@ -632,4 +632,58 @@ program
     }
   });
 
+/**
+ * aipm info <id> - show detailed information about a component
+ */
+program
+  .command('info <id>')
+  .description('Show detailed information about an installed component')
+  .action(async (id: string) => {
+    try {
+      const cacheManager = new CacheManager();
+      await cacheManager.init();
+
+      if (!(await cacheManager.isInstalled(id))) {
+        logInfo(`Component ${id} is not installed`);
+        process.exit(0);
+      }
+
+      const meta = await cacheManager.getInstalledMetadata(id);
+      if (!meta) {
+        logInfo(`No metadata found for ${id}`);
+        process.exit(0);
+      }
+
+      console.log();
+      console.log(chalk.bold('Component:'), chalk.cyan(meta.id));
+      console.log(chalk.bold('Version:'), chalk.yellow(meta.version));
+      console.log(chalk.bold('Source:'), chalk.gray(meta.source));
+      console.log(chalk.bold('Path:'), meta.path);
+
+      // Check if it's defined in the current stack
+      const stackFile = findStackConfigFile();
+      if (stackFile) {
+        const stack = await loadStackConfigFromFile(stackFile);
+        const inSkills = (stack.skills || []).some(s => s.id === id);
+        const inAgents = (stack.agents || []).some(a => a.id === id);
+        const inMcps = (stack.mcps || []).some(m => m.id === id);
+        const types: string[] = [];
+        if (inSkills) types.push('skill');
+        if (inAgents) types.push('agent');
+        if (inMcps) types.push('MCP');
+        if (types.length > 0) {
+          console.log(chalk.bold('Type:'), types.join(', '));
+          console.log(chalk.bold('Status:'), chalk.green('active in current stack'));
+        } else {
+          console.log(chalk.bold('Status:'), chalk.gray('not in current stack'));
+        }
+      }
+
+      console.log();
+    } catch (error) {
+      logError(`Info failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();
