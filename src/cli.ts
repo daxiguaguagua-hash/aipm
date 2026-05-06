@@ -3,15 +3,20 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
+import yaml from 'js-yaml';
 import { loadStackConfigFromFile } from './parser';
 import { CacheManager } from './cache';
 import { GitInstaller } from './installer';
 import { getAdapter, TargetPlatformName } from './adapters';
 import { ensureDir, getLocalAiDir, logInfo, logSuccess, logError } from './utils';
-import { InstalledComponent } from './types';
+import { InstalledComponent, StackConfig } from './types';
 import { detectOpenClawPath } from './importers/detector';
 import { importOpenClaw } from './importers/openclaw';
+import { importHermes } from './importers/hermes';
+import { mergeIntoStack, ConflictStrategy } from './importers/merge';
+import { MigrationPlan } from './importers/types';
 
 const program = new Command();
 const DEFAULT_STACK_FILE_YAML = '.ai/stack.yaml';
@@ -87,6 +92,10 @@ async function exportToPlatform(platform: string): Promise<void> {
     agents: lock.agents || [],
     mcps: lock.mcps || [],
   }, outputDir);
+}
+
+function formatStackAsYaml(stack: StackConfig): string {
+  return yaml.dump(stack, { lineWidth: 120, noRefs: true, sortKeys: false });
 }
 
 program
@@ -835,34 +844,70 @@ program
  */
 program
   .command('import <source>')
-  .description('Import configuration from an existing tool (dry-run only). Supported sources: openclaw')
-  .option('--no-dry-run', 'Apply import (disabled in this phase)')
+  .description('Import configuration from an existing tool. Supported sources: openclaw, hermes')
+  .option('--no-dry-run', 'Apply import and write changes (disabled without --write)')
+  .option('--write', 'Write merged configuration to stack.yaml')
+  .option('--on-conflict <strategy>', 'Conflict resolution: keep-existing (default) or overwrite', 'keep-existing')
   .option('--json', 'Output migration plan as JSON')
-  .action(async (source: string, options: { dryRun?: boolean; json?: boolean }) => {
+  .action(async (source: string, options: { dryRun?: boolean; write?: boolean; onConflict?: string; json?: boolean }) => {
     try {
-      if (source !== 'openclaw') {
-        logError(`Unsupported import source: "${source}". Currently supported: openclaw`);
+      const SUPPORTED = ['openclaw', 'hermes'];
+      if (!SUPPORTED.includes(source)) {
+        logError(`Unsupported import source: "${source}". Supported: ${SUPPORTED.join(', ')}`);
         process.exit(1);
       }
 
-      const configPath = detectOpenClawPath();
-      if (!configPath) {
-        logError(`OpenClaw configuration not found at ~/.openclaw/openclaw.json`);
-        logInfo('Make sure OpenClaw is installed and has been run at least once.');
-        process.exit(1);
+      // Resolve config path and importer
+      let configPath: string | null;
+      let plan: MigrationPlan;
+
+      if (source === 'openclaw') {
+        configPath = detectOpenClawPath();
+        if (!configPath) {
+          logError('OpenClaw configuration not found at ~/.openclaw/openclaw.json');
+          logInfo('Make sure OpenClaw is installed and has been run at least once.');
+          process.exit(1);
+        }
+        const content = await fs.promises.readFile(configPath, 'utf8');
+        plan = await importOpenClaw(content);
+      } else {
+        // hermes
+        const hermesPath = path.join(os.homedir(), '.hermes', 'config.yaml');
+        if (!fs.existsSync(hermesPath)) {
+          logError('Hermes configuration not found at ~/.hermes/config.yaml');
+          process.exit(1);
+        }
+        configPath = hermesPath;
+        const content = await fs.promises.readFile(hermesPath, 'utf8');
+        plan = await importHermes(content);
       }
 
-      const content = await fs.promises.readFile(configPath, 'utf8');
-      const plan = await importOpenClaw(content);
-
+      // --json: output plan and exit
       if (options.json) {
+        // If --write, compute merge result for JSON output
+        if (options.write) {
+          const stackFile = findStackConfigFile();
+          if (!stackFile) {
+            logError('No stack configuration file found. Run \'aipm init\' first.');
+            process.exit(1);
+          }
+          const stack = await loadStackConfigFromFile(stackFile);
+          const strategy = options.onConflict === 'overwrite' ? 'overwrite' : 'keep-existing';
+          const mergeResult = mergeIntoStack(plan, stack, strategy);
+          console.log(JSON.stringify({ plan, merge: { ...mergeResult, stack: undefined } }, null, 2));
+          process.exit(0);
+        }
         console.log(JSON.stringify(plan, null, 2));
         process.exit(0);
       }
 
+      // Display plan
       console.log();
-      console.log(chalk.bold(`Migration plan for ${chalk.cyan('openclaw')}`));
-      console.log(`  Source: ${plan.source.path} (version ${plan.source.version || 'unknown'})`);
+      console.log(chalk.bold(`Migration plan for ${chalk.cyan(source)}`));
+      console.log(`  Source: ${configPath}`);
+      if (plan.source.version) {
+        console.log(`  Version: ${plan.source.version}`);
+      }
       console.log();
 
       if (plan.agents.length > 0) {
@@ -870,6 +915,9 @@ program
         plan.agents.forEach((a) => {
           const modelInfo = a.model ? chalk.gray(` (model: ${a.model})`) : '';
           console.log(`    ${chalk.cyan(a.id)}${modelInfo}`);
+          if (a.system) {
+            console.log(`      ${chalk.gray('system:')} ${a.system.slice(0, 80)}${a.system.length > 80 ? '...' : ''}`);
+          }
         });
         console.log();
       }
@@ -878,7 +926,8 @@ program
         console.log(chalk.bold('  MCPs (providers):'));
         plan.mcps.forEach((m) => {
           const modelCount = m.args?.length || 0;
-          console.log(`    ${chalk.cyan(m.id)} — ${modelCount} model(s) via ${m.transport}`);
+          const extra = modelCount > 0 ? ` — ${modelCount} model(s) via ${m.transport}` : '';
+          console.log(`    ${chalk.cyan(m.id)}${extra}`);
         });
         console.log();
       }
@@ -894,13 +943,43 @@ program
       }
 
       if (plan.agents.length === 0 && plan.mcps.length === 0) {
-        logInfo('No importable agents or MCPs found in OpenClaw configuration.');
-        logInfo('This is expected if you have not configured custom agents or providers.');
+        logInfo('No importable agents or MCPs found.');
+      }
+
+      // --write: merge into stack.yaml
+      if (options.write) {
+        const stackFile = findStackConfigFile();
+        if (!stackFile) {
+          logError('No stack configuration file found. Run \'aipm init\' first.');
+          process.exit(1);
+        }
+        const stack = await loadStackConfigFromFile(stackFile);
+        const strategy = (options.onConflict === 'overwrite' ? 'overwrite' : 'keep-existing') as ConflictStrategy;
+        const mergeResult = mergeIntoStack(plan, stack, strategy);
+
+        console.log();
+        console.log(chalk.bold('  Merge result:'));
+        mergeResult.summary.forEach((s) => console.log(`    ${s}`));
+
+        if (mergeResult.conflicts.length > 0) {
+          console.log();
+          console.log(chalk.yellow('  Conflicts (kept existing):'));
+          mergeResult.conflicts.forEach((c) => console.log(`    ${chalk.gray('•')} ${c.type} "${c.id}" already exists in ${c.existing}`));
+        }
+
+        // Write back
+        const yamlContent = formatStackAsYaml(mergeResult.stack);
+        await fs.promises.writeFile(stackFile, yamlContent, 'utf8');
+        console.log();
+        logSuccess(`Merged into ${stackFile} (${mergeResult.addedAgents} agents, ${mergeResult.addedMcps} MCPs added)`);
+        process.exit(0);
       }
 
       console.log();
       logInfo('This is a dry-run preview. No files have been modified.');
-      logInfo('To apply this migration, copy relevant entries into your stack.yaml and run aipm install.');
+      if (plan.agents.length > 0 || plan.mcps.length > 0) {
+        logInfo('Use ' + chalk.bold(`aipm import ${source} --write`) + ' to apply this migration to your stack.yaml.');
+      }
     } catch (error) {
       logError(`Import failed: ${(error as Error).message}`);
       process.exit(1);
