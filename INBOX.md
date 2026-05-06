@@ -1,0 +1,1 @@
+提交 Codex 第三轮产出（CLI smoke test），然后 STATUS.md 汇报。

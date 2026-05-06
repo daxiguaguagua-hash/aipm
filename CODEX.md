@@ -19,12 +19,13 @@ It exists to keep project progress under user control after earlier agent work a
 
 - Build passes with `npm run build`.
 - Test suite passes with `npm test`.
-- Latest observed test result: 50 tests passed across 6 test suites.
+- Latest observed test result: 51 tests passed across 7 test suites.
 - Current package version is `0.2.0-alpha.1`.
 - README / README.zh mark the project as experimental alpha / dogfood only.
 - ROADMAP marks v0.2.0 as alpha hardening.
 - Gray-release acceptance checklist exists at `docs/alpha-checklist.md`.
 - Documentation test covers the alpha checklist content.
+- CLI smoke test covers built `dist/cli.js` in a temporary project.
 
 ## Development Agents
 
@@ -60,6 +61,7 @@ It exists to keep project progress under user control after earlier agent work a
 - `ROADMAP.md` has been organized into v0.1.0, v0.2.0, and v0.3.0.
 - `v0.2.0-alpha.1` positioning is complete.
 - Gray-release acceptance checklist is complete.
+- CLI smoke test is complete.
 
 ## Remaining Work
 
@@ -67,10 +69,9 @@ Open user feedback items in `TODO.md` are alpha hardening items and later featur
 
 Current priority order:
 
-1. Add CLI smoke test.
-2. Add runnable demo stack.
-3. Improve common failure messages.
-4. Later: import/migration and multi-configuration support.
+1. Add runnable demo stack.
+2. Improve common failure messages.
+3. Later: import/migration and multi-configuration support.
 
 ## Agent Control Notes
 
@@ -83,6 +84,6 @@ Current priority order:
 
 ## Next Codex Step
 
-用户指令：继续推进 aipm 项目，按照 TDD 工作流推进 `建立灰度验收清单`。该任务已完成。
+用户指令：继续推进 `CLI smoke test`。该任务已完成。
 
-本轮新增 `tests/docs.test.ts`，先验证 checklist 必须覆盖主流程、生成文件、预期输出和失败排查点，再新增 `docs/alpha-checklist.md` 让测试通过。下一步建议推进 `增加 CLI smoke test`。
+本轮新增 `tests/cli-smoke.test.ts`，使用临时目录执行构建后的 `dist/cli.js`，覆盖 `init`、`validate`、`install --dry-run`、`install`、`export claude-code`、`use claude-code`，并避免真实网络依赖。下一步建议推进 `新增可运行 demo stack`。

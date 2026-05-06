@@ -24,7 +24,7 @@
   - 检查 `.claude/settings.json`、skills、agents 等生成文件
   - 记录预期输出和失败时排查点
 
-- [ ] **增加 CLI smoke test** — 用真实 CLI 命令跑主链路，避免只有函数级单元测试通过。
+- [*] **增加 CLI smoke test** — 用真实 CLI 命令跑主链路，避免只有函数级单元测试通过。
   - 使用临时目录执行构建后的 `dist/cli.js`
   - 覆盖 `init`、`validate`、`install --dry-run`、`use/export` 的可运行性
   - 避免真实网络依赖，必要时使用本地 fixture 或 dry-run
