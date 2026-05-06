@@ -5,6 +5,11 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 10:35
+- commit: feat: add CLI smoke test (Codex round 3)
+- 7 suites, 51 tests 全绿（新增 tests/cli-smoke.test.ts 含 1 test）
+- INBOX.md 已清空
+
 ## 2026-05-06 10:30
 - commit: chore: add INBOX/STATUS mechanism, alpha versioning, and cleanup docs (13 files)
 - 工作区已清理，无未提交改动
