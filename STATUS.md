@@ -5,6 +5,11 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 14:40
+- commit: fix Codex round 2 findings — formatStackToFile rename, MCP wiring, Hermes keys, .gitignore coverage/
+- build 通过，82 tests 全绿，Codex P3 only (coverage/ gitignore — 已修复)
+- INBOX.md 已清空
+
 ## 2026-05-06 13:10
 - commit: feat: add OpenClaw configuration importer (Phase 1, dry-run only)
 - 新增 `aipm import openclaw` 命令，提取 agents/providers/channels，不泄露 secrets

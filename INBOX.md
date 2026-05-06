@@ -1,1 +1,0 @@
-git status 确认：INBOX.md / cli.ts / hermes.ts / merge.ts 有未提交改动。提交它们并清理工作区，更新 STATUS。
