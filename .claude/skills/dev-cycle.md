@@ -1,62 +1,50 @@
 ---
 name: dev-cycle
-description: Workspace cleanup cycle — after Codex finishes coding, commit, verify, and clean. Use when INBOX says to clean workspace.
+description: Complete development cycle — write code, build, test, commit, codex review. Use for every batch of code changes.
 ---
 
-# Workspace Cleanup Cycle
+# Dev Cycle
 
-Your role is workspace manager. Codex does the coding. You do the cleanup.
+After every batch of code changes, run this full cycle:
 
-After Codex finishes a round, Hermes will write to INBOX.md telling you to clean up.
-
-## Step 1: Check Status
-
-```bash
-git status
-```
-
-See what Codex changed.
-
-## Step 2: Verify
-
-If there are significant code changes, run verification:
-
+## Step 1: Build
 ```bash
 npm run build
+```
+If build fails, fix errors and restart from Step 1.
+
+## Step 2: Test
+```bash
 npm test
 ```
-
-If build or test fails, note it in STATUS.md and stop. Do NOT fix code — that's Codex's job.
+If any test fails, fix and restart from Step 1.
 
 ## Step 3: Commit
-
 ```bash
 git add <changed files>
-git commit -m "descriptive message summarizing Codex's round"
+git commit -m "descriptive message"
 ```
 
-## Step 4: Verify Clean
+## Step 4: Codex Review
+```bash
+codex review --uncommitted
+```
+If Codex finds issues, fix them and restart from Step 1.
+If Codex is unavailable, skip but note in STATUS.md.
 
+## Step 5: Clean Workspace
 ```bash
 git status
 ```
+Must be clean (only coverage/ untracked is OK).
 
-Must show only `coverage/` untracked (which is normal). Nothing else.
-
-## Step 5: Update STATUS
-
-Write a summary to STATUS.md (newest at top).
-
-## Step 6: Clear INBOX
-
-INBOX.md should be empty after processing.
+## Step 6: Report
+Write summary to STATUS.md, clear INBOX.md.
 
 ---
 
 ## Rules
-
-- Never skip steps. If a step fails, fix before moving on.
-- Do NOT write feature code. That's Codex's job.
-- Do NOT modify Codex's code to fix bugs — report them in STATUS.md.
-- Commit messages should describe what Codex delivered.
+- Never skip steps.
+- TDD preferred: write tests first.
+- Commit messages describe WHY, not just WHAT.
 - All commands run without user confirmation.
