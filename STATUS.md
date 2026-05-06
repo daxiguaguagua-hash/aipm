@@ -1,58 +1,6 @@
-# STATUS — 工作流状态摘要
-
-<!-- 
-  Claude Code 每个循环结束后更新。
-  最新状态在最上面。只写事实，不写计划。
--->
-
-## 2026-05-06 16:10
-- commit: feat: add Codex and OpenRouter importers (Phase 3)
-- 13 suites, 96 tests 全绿 (+14 new tests)
-- Codex review: P1 (HTTP MCP command validation) + P2 (env passthrough) — 已修复
-- INBOX.md 已清空
-
-## 2026-05-06 14:40
-- commit: fix Codex round 2 findings — formatStackToFile rename, MCP wiring, Hermes keys, .gitignore coverage/
-- build 通过，82 tests 全绿，Codex P3 only (coverage/ gitignore — 已修复)
-- INBOX.md 已清空
-
-## 2026-05-06 13:10
-- commit: feat: add OpenClaw configuration importer (Phase 1, dry-run only)
-- 新增 `aipm import openclaw` 命令，提取 agents/providers/channels，不泄露 secrets
-- 9 suites, 67 tests 全绿（+10 new tests）
-- 阶段：开发完成，Codex review 通过（无问题）
-- 角色：Claude Code=开发者（本轮主动开发，非被动管理等 Codex 产出）
-
-## 2026-05-06 12:45
-- commit: docs: correct workflow roles — CC=dev, Codex=reviewer, Hermes=controller
-- 角色修正：Claude Code 是开发者（非工作区管理员），Codex 是审批者
-- build 通过，57 tests 全绿
-- INBOX.md 已清空
-
-## 2026-05-06 12:35
-- commit: docs: restructure workflow roles with Hermes as controller
-- 角色分工明确：Hermes (总控) → INBOX → Workspace Manager → Codex (开发)
-- CLAUDE.md 精简为工作区管理员职责
-- build 通过，57 tests 全绿
-- INBOX.md 已清空
-
-## 2026-05-06 12:25
-- commit: feat: add demo stack, failure hints, and smoke validation (Codex round 4)
-- 7 suites, 57 tests 全绿（新增 examples/alpha-demo.stack.yaml、失败提示打磨、smoke 扩展）
-- TODO.md 中 demo stack 和失败体验打磨两项标记 [*]
-- INBOX.md 已清空
-
-## 2026-05-06 10:35
-- commit: feat: add CLI smoke test (Codex round 3)
-- 7 suites, 51 tests 全绿（新增 tests/cli-smoke.test.ts 含 1 test）
-- INBOX.md 已清空
-
-## 2026-05-06 10:30
-- commit: chore: add INBOX/STATUS mechanism, alpha versioning, and cleanup docs (13 files)
-- 工作区已清理，无未提交改动
-- INBOX.md 已清空
-
-## 2026-05-06 10:20 INIT
-- 项目 aipm v0.2.0-alpha，处于 alpha hardening 阶段
-- 工作流：Claude Code (DeepSeek V4 Pro) 执行，Codex (GPT-5.5) 审查
-- INBOX/STATUS 机制已建立，Hermes Agent 作为用户远程传声筒
+## 2026-05-06 17:30 SESSION END
+- Phase 1-3 全部完成：OpenClaw/Hermes/Codex/OpenRouter 导入
+- 96 tests，13 suites，工作区干净
+- 新工作流已建立：Hermes总控 → INBOX → Claude Code → Codex审批
+- 剩余：Codex+Hermes target平台、多配置支持
+- 阻塞：Claude Code DeepSeek API 400 user_id（待排查）
