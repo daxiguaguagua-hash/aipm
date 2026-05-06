@@ -5,6 +5,12 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 12:25
+- commit: feat: add demo stack, failure hints, and smoke validation (Codex round 4)
+- 7 suites, 57 tests 全绿（新增 examples/alpha-demo.stack.yaml、失败提示打磨、smoke 扩展）
+- TODO.md 中 demo stack 和失败体验打磨两项标记 [*]
+- INBOX.md 已清空
+
 ## 2026-05-06 10:35
 - commit: feat: add CLI smoke test (Codex round 3)
 - 7 suites, 51 tests 全绿（新增 tests/cli-smoke.test.ts 含 1 test）
