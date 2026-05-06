@@ -5,6 +5,13 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 12:35
+- commit: docs: restructure workflow roles with Hermes as controller
+- 角色分工明确：Hermes (总控) → INBOX → Workspace Manager → Codex (开发)
+- CLAUDE.md 精简为工作区管理员职责
+- build 通过，57 tests 全绿
+- INBOX.md 已清空
+
 ## 2026-05-06 12:25
 - commit: feat: add demo stack, failure hints, and smoke validation (Codex round 4)
 - 7 suites, 57 tests 全绿（新增 examples/alpha-demo.stack.yaml、失败提示打磨、smoke 扩展）
