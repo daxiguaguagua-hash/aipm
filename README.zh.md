@@ -63,6 +63,22 @@ aipm use claude-code
 aipm use openclaw
 ```
 
+## Alpha Demo
+
+可重复执行的 alpha 验收路径：
+
+- [docs/alpha-checklist.md](./docs/alpha-checklist.md) - 灰度验收步骤
+- [examples/alpha-demo.stack.yaml](./examples/alpha-demo.stack.yaml) - 覆盖一个 skill、一个 inline agent、一个 MCP 和多个 target 的 demo stack
+
+这个 demo stack 可以在无网络环境下完成校验和安装预览：
+
+```bash
+mkdir -p .ai
+cp examples/alpha-demo.stack.yaml .ai/stack.yaml
+aipm validate
+aipm install --dry-run
+```
+
 ## 工作流：随身携带你的 AI 环境
 
 因为你的整个 AI 环境都定义在一个配置文件中，你可以：

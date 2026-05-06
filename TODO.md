@@ -29,12 +29,12 @@
   - 覆盖 `init`、`validate`、`install --dry-run`、`use/export` 的可运行性
   - 避免真实网络依赖，必要时使用本地 fixture 或 dry-run
 
-- [ ] **新增可运行 demo stack** — 提供一个真实示例，不只是 README 片段。
+- [*] **新增可运行 demo stack** — 提供一个真实示例，不只是 README 片段。
   - 放在 `examples/` 或 `fixtures/`
   - 能用于灰度验收和 smoke test
   - 覆盖至少一个 skill、一个 inline agent、一个 MCP、一个 target
 
-- [ ] **明确失败体验** — 灰度阶段先把常见失败提示打磨清楚。
+- [*] **明确失败体验** — 灰度阶段先把常见失败提示打磨清楚。
   - 无 GitHub token
   - 私有 repo 没权限
   - Release 不存在

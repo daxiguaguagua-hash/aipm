@@ -1,0 +1,37 @@
+project: aipm-alpha-demo
+
+# Demo skill: intentionally remote so `aipm install --dry-run` can preview it
+# without network access during alpha smoke tests.
+skills:
+  - id: demo-code-review
+    source: github:example/aipm-demo-code-review
+    version: v0.1.0
+    entry: ./main.md
+
+# Inline agent: exported directly to target tools, not installed from Git.
+agents:
+  - id: demo-planner
+    model: claude-haiku
+    system: You help verify the aipm alpha demo stack. Keep responses short and practical.
+    skills: [demo-code-review]
+
+# MCP: passed through to target adapters.
+mcps:
+  - id: filesystem
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    transport: stdio
+
+targets:
+  claude-code:
+    skills: [demo-code-review]
+    agents: [demo-planner]
+    mcps: [filesystem]
+
+  openclaw:
+    skills: [demo-code-review]
+    agents: [demo-planner]
+
+  opencode:
+    skills: [demo-code-review]
+    mcps: [filesystem]

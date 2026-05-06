@@ -19,13 +19,15 @@ It exists to keep project progress under user control after earlier agent work a
 
 - Build passes with `npm run build`.
 - Test suite passes with `npm test`.
-- Latest observed test result: 51 tests passed across 7 test suites.
+- Latest observed test result: 57 tests passed across 7 test suites.
 - Current package version is `0.2.0-alpha.1`.
 - README / README.zh mark the project as experimental alpha / dogfood only.
 - ROADMAP marks v0.2.0 as alpha hardening.
 - Gray-release acceptance checklist exists at `docs/alpha-checklist.md`.
 - Documentation test covers the alpha checklist content.
 - CLI smoke test covers built `dist/cli.js` in a temporary project.
+- Runnable demo stack exists at `examples/alpha-demo.stack.yaml`.
+- GitHub install failure messages include actionable troubleshooting hints.
 
 ## Development Agents
 
@@ -62,6 +64,8 @@ It exists to keep project progress under user control after earlier agent work a
 - `v0.2.0-alpha.1` positioning is complete.
 - Gray-release acceptance checklist is complete.
 - CLI smoke test is complete.
+- Runnable demo stack is complete.
+- Common GitHub install failure messages are hardened.
 
 ## Remaining Work
 
@@ -69,9 +73,7 @@ Open user feedback items in `TODO.md` are alpha hardening items and later featur
 
 Current priority order:
 
-1. Add runnable demo stack.
-2. Improve common failure messages.
-3. Later: import/migration and multi-configuration support.
+1. Later: import/migration and multi-configuration support.
 
 ## Agent Control Notes
 
@@ -84,6 +86,6 @@ Current priority order:
 
 ## Next Codex Step
 
-用户指令：继续推进 `CLI smoke test`。该任务已完成。
+用户指令：继续推进 demo stack 和失败体验打磨。两项均已完成。
 
-本轮新增 `tests/cli-smoke.test.ts`，使用临时目录执行构建后的 `dist/cli.js`，覆盖 `init`、`validate`、`install --dry-run`、`install`、`export claude-code`、`use claude-code`，并避免真实网络依赖。下一步建议推进 `新增可运行 demo stack`。
+本轮新增 `examples/alpha-demo.stack.yaml`，并用 docs/smoke 测试覆盖可解析、可 validate、可 `install --dry-run`。同时补 GitHub release/tarball/fallback clone 失败提示，错误信息会指向 `gh auth status`、`GITHUB_TOKEN`、release tag、权限和网络排查。下一步剩余较大的方向是导入/迁移与多配置支持。

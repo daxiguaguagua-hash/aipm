@@ -63,6 +63,22 @@ aipm use claude-code
 aipm use openclaw
 ```
 
+## Alpha Demo
+
+For a repeatable alpha validation path, see:
+
+- [docs/alpha-checklist.md](./docs/alpha-checklist.md) - step-by-step gray-release checklist
+- [examples/alpha-demo.stack.yaml](./examples/alpha-demo.stack.yaml) - demo stack with one skill, one inline agent, one MCP, and multiple targets
+
+The demo stack can be validated and previewed without network access:
+
+```bash
+mkdir -p .ai
+cp examples/alpha-demo.stack.yaml .ai/stack.yaml
+aipm validate
+aipm install --dry-run
+```
+
 ## Workflow: Portable AI Environment
 
 Since your entire AI environment is defined in one configuration file, you can:

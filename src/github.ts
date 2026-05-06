@@ -12,6 +12,38 @@ interface ReleaseInfo {
 }
 
 /**
+ * Format an actionable GitHub release failure hint for alpha users.
+ */
+export function formatGitHubFailureHint(
+  error: Error,
+  owner: string,
+  repo: string,
+  version?: string
+): string {
+  const target = `${owner}/${repo}${version ? `@${version}` : '@latest'}`;
+  const detail = error.message;
+  const lower = detail.toLowerCase();
+  const lines = [`GitHub release lookup failed for ${target}: ${detail}.`];
+
+  if (lower.includes('download failed')) {
+    lines[0] = `Tarball download failed for ${target}: ${detail}.`;
+    lines.push('Next steps: check GitHub token permissions, release asset availability, and network access.');
+  } else if (lower.includes('not found') || lower.includes('404')) {
+    lines.push('Next steps: confirm the repository exists and that the release tag is correct.');
+    if (version) {
+      lines.push(`If a specific version was requested, confirm that release tag \`${version}\` exists.`);
+    }
+    lines.push('If this is a private repository, run `gh auth status` and confirm the account has repository access, or set `GITHUB_TOKEN` with repo permissions.');
+  } else if (lower.includes('bad credentials') || lower.includes('401') || lower.includes('403') || lower.includes('rate limit')) {
+    lines.push('Next steps: run `gh auth status`, refresh GitHub auth if needed, or set `GITHUB_TOKEN` with repo permissions.');
+  } else {
+    lines.push('Next steps: check network access, GitHub release availability, and authentication with `gh auth status` or `GITHUB_TOKEN`.');
+  }
+
+  return lines.join(' ');
+}
+
+/**
  * Extract owner/repo from GitHub URL or github: prefix
  */
 export function parseGitHubRepo(source: string): { owner: string; repo: string } | null {
@@ -138,7 +170,12 @@ export async function downloadRelease(
   repo: string,
   version?: string
 ): Promise<{ tarballPath: string; tag: string }> {
-  const release = await getReleaseInfo(owner, repo, version);
+  let release: ReleaseInfo;
+  try {
+    release = await getReleaseInfo(owner, repo, version);
+  } catch (error) {
+    throw new Error(formatGitHubFailureHint(error as Error, owner, repo, version));
+  }
   logInfo(`Found release ${release.tag} for ${owner}/${repo}`);
 
   const headers: Record<string, string> = {
@@ -153,7 +190,11 @@ export async function downloadRelease(
   await ensureDir(tmpDir);
   const tarballPath = path.join(tmpDir, `${repo}-${release.tag}.tar.gz`);
 
-  await downloadFile(release.tarballUrl, headers, tarballPath);
+  try {
+    await downloadFile(release.tarballUrl, headers, tarballPath);
+  } catch (error) {
+    throw new Error(formatGitHubFailureHint(error as Error, owner, repo, version));
+  }
 
   return { tarballPath, tag: release.tag };
 }

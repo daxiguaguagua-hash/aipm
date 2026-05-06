@@ -1,7 +1,9 @@
 import fs from 'fs';
+import simpleGit from 'simple-git';
 import { GitInstaller } from '../src/installer';
 import { CacheManager } from '../src/cache';
 import { Skill, Agent } from '../src/types';
+import * as github from '../src/github';
 
 // Mock simple-git
 jest.mock('simple-git', () => {
@@ -189,5 +191,24 @@ describe('GitInstaller', () => {
     } as unknown as Skill;
 
     await expect(installer.installSkill(skill)).rejects.toThrow('Skill test-skill has no source URL');
+  });
+
+  test('adds troubleshooting context when GitHub release and fallback clone both fail', async () => {
+    const skill: Skill = {
+      id: 'private-skill',
+      source: 'https://github.com/user/private-skill.git',
+      version: 'v1.0.0',
+      entry: './main.md',
+    };
+
+    cacheManager.isInstalled.mockResolvedValue(false);
+    jest.spyOn(github, 'downloadRelease').mockRejectedValueOnce(new Error('Not Found'));
+    (simpleGit as jest.Mock).mockReturnValueOnce({
+      clone: jest.fn().mockRejectedValue(new Error('Authentication failed')),
+    });
+
+    await expect(installer.installSkill(skill)).rejects.toThrow(
+      /Fallback git clone failed.*gh auth status.*GITHUB_TOKEN/s
+    );
   });
 });

@@ -113,11 +113,13 @@ export class GitInstaller {
 
     // Try GitHub release download first (smaller, faster, no git clone overhead)
     const ghRepo = parseGitHubRepo(source);
+    let githubReleaseFailure: Error | null = null;
     if (ghRepo) {
       try {
         return await this.downloadGitHubRelease(id, ghRepo.owner, ghRepo.repo, version, source, cachePath);
-      } catch {
-        logInfo(`GitHub release download failed for ${source}, falling back to git clone`);
+      } catch (error) {
+        githubReleaseFailure = error as Error;
+        logInfo(`${githubReleaseFailure.message} Falling back to git clone.`);
         // Fall through to git clone below
       }
     }
@@ -148,8 +150,17 @@ export class GitInstaller {
         path: cachePath,
       };
     } catch (error) {
-      logError(`Failed to clone ${gitUrl}: ${(error as Error).message}`);
-      throw error;
+      const cloneFailure = error as Error;
+      const help = [
+        `Fallback git clone failed for ${gitUrl}: ${cloneFailure.message}.`,
+        'Next steps: confirm the repository URL, branch/tag, network access, and permissions.',
+        'For private GitHub repositories, run `gh auth status` or set `GITHUB_TOKEN` with repo permissions.',
+      ].join(' ');
+      const combined = githubReleaseFailure
+        ? `${githubReleaseFailure.message} ${help}`
+        : help;
+      logError(combined);
+      throw new Error(combined);
     }
   }
 

@@ -97,4 +97,22 @@ targets:
     const agents = JSON.parse(fs.readFileSync(path.join(projectDir, '.claude', 'agents.json'), 'utf8'));
     expect(agents.agents['smoke-planner'].system).toBe('You verify the aipm CLI smoke path.');
   });
+
+  test('validates the alpha demo stack and previews install without network access', () => {
+    fs.copyFileSync(
+      path.join(repoRoot, 'examples', 'alpha-demo.stack.yaml'),
+      path.join(projectDir, 'stack.yaml')
+    );
+    fs.mkdirSync(path.join(projectDir, '.ai'));
+    fs.renameSync(path.join(projectDir, 'stack.yaml'), path.join(projectDir, '.ai', 'stack.yaml'));
+
+    const validateOutput = runCli(['validate']);
+    expect(validateOutput).toContain('Configuration is valid for project "aipm-alpha-demo"');
+    expect(validateOutput).toContain('1 skills, 1 agents, 1 MCPs');
+
+    const dryRunOutput = runCli(['install', '--dry-run']);
+    expect(dryRunOutput).toContain('Dry run - would install:');
+    expect(dryRunOutput).toContain('1 skill(s), 0 agent(s)');
+    expect(dryRunOutput).toContain('demo-code-review');
+  });
 });
