@@ -1,91 +1,61 @@
-# Codex Project Handoff
+# Codex 工作交接
 
-This document is the working handoff for Codex on `aipm`.
+## 项目架构（三人分工）
 
-It exists to keep project progress under user control after earlier agent work allowed Claude to plan too much of the workflow by itself.
+```
+Hermes Agent （总控）
+  ├── 读 TODO.md，拆解任务
+  ├── 通过 tmux 向你发指令
+  ├── 验收你的产出
+  └── 调度 Claude Code 清理工作区
 
-## Progress Rule
+Codex = 你 （开发者）
+  ├── 收到 Hermes 的 tmux 指令后执行
+  ├── 写代码 + 测试（TDD 优先）
+  ├── 跑 build + test
+  └── 完成后汇报结果（不必等 commit，Claude Code 会提交）
 
-- `TODO.md` is the user's hands-on feedback backlog after trying a small completed version.
-- `CODEX.md` is the handoff and control document.
-- `ROADMAP.md` is the version-level direction.
-- Old files under `docs/superpowers/plans/` are historical implementation plans only.
-- Do not treat old unchecked plan boxes as live progress.
-- Do not automatically execute items from `TODO.md`; the user decides which feedback item becomes active work.
-- Do not let an agent create a new long-running workflow unless the user explicitly asks for it.
-- For each active task, summarize the selected scope in `CODEX.md`, then implement, verify, and only update `TODO.md` when the user-facing feedback status actually changes.
+Claude Code （工作区管理员）
+  ├── 读 INBOX.md
+  ├── 提交你的产出
+  ├── 验证 build/test
+  └── 更新 STATUS.md
+```
 
-## Current Status
+## 你的工作方式
 
-- Build passes with `npm run build`.
-- Test suite passes with `npm test`.
-- Latest observed test result: 57 tests passed across 7 test suites.
-- Current package version is `0.2.0-alpha.1`.
-- README / README.zh mark the project as experimental alpha / dogfood only.
-- ROADMAP marks v0.2.0 as alpha hardening.
-- Gray-release acceptance checklist exists at `docs/alpha-checklist.md`.
-- Documentation test covers the alpha checklist content.
-- CLI smoke test covers built `dist/cli.js` in a temporary project.
-- Runnable demo stack exists at `examples/alpha-demo.stack.yaml`.
-- GitHub install failure messages include actionable troubleshooting hints.
+- Hermes 通过 tmux session `codex-aipm` 向你发指令
+- 收到指令后立即开始，不要等确认
+- 使用 TDD：先写测试，再写实现
+- 每完成一个任务跑 `npm run build && npm test`
+- 完成后说"本轮完成"并列出产出，Hermes 会接管后续
 
-## Development Agents
+## 当前状态
 
-- Claude Code is configured to use Deepseek 4.0 Pro.
-- Codex is configured to use GPT-5.5.
+- 版本：`v0.2.0-alpha.1`
+- 测试：7 suites，57 tests，全部通过
+- 工作区由 Claude Code 维护，你不用担心 git commit
 
-## Completed Work
+## 已完成
 
-- MVP core is complete.
-- Stack config parsing supports YAML, YML, and JSON.
-- Skills and agents can be installed from Git sources.
-- GitHub source support has been added for release tarball download with git clone fallback.
-- GitHub auth uses `gh auth token` first, then `GITHUB_TOKEN`.
-- Claude Code, OpenClaw, and OpenCode adapters exist.
-- Claude Code export supports MCP, skills, and agents.
-- Inline agents are supported.
-- CLI lifecycle commands exist:
-  - `init`
-  - `install`
-  - `export`
-  - `use`
-  - `status`
-  - `update`
-  - `uninstall`
-  - `list`
-  - `validate`
-  - `clean`
-  - `info`
-- `init` uses the current directory name as the default project name.
-- `validate` checks target references.
-- Update flow has been hardened so failed updates do not corrupt cache or lock state.
-- The development loop has been extracted into a reusable skill.
-- `ROADMAP.md` has been organized into v0.1.0, v0.2.0, and v0.3.0.
-- `v0.2.0-alpha.1` positioning is complete.
-- Gray-release acceptance checklist is complete.
-- CLI smoke test is complete.
-- Runnable demo stack is complete.
-- Common GitHub install failure messages are hardened.
+- MVP 核心架构
+- 三平台适配器（Claude Code / OpenClaw / OpenCode）
+- CLI 命令 10+ 个
+- GitHub 后端（Release + clone fallback）
+- v0.2.0-alpha.1 版本定位
+- 灰度验收清单
+- CLI smoke test
+- Demo stack
+- 失败体验打磨
 
-## Remaining Work
+## 待办（由 Hermes 调度）
 
-Open user feedback items in `TODO.md` are alpha hardening items and later feature work.
+- 已有工具配置导入/迁移
+- 多配置支持
 
-Current priority order:
+## 注意事项
 
-1. Later: import/migration and multi-configuration support.
-
-## Agent Control Notes
-
-- Keep status updates short and factual.
-- Do not use Markdown tables or Mermaid diagrams for user-facing progress reports.
-- Report using short sections and bullet lists.
-- Before changing process documents, verify current git history and `TODO.md`.
-- Do not overwrite user or agent changes without checking `git status`.
-- Do not delete `coverage/` unless the user asks; it is generated test output and currently untracked.
-
-## Next Codex Step
-
-用户指令：继续推进 demo stack 和失败体验打磨。两项均已完成。
-
-本轮新增 `examples/alpha-demo.stack.yaml`，并用 docs/smoke 测试覆盖可解析、可 validate、可 `install --dry-run`。同时补 GitHub release/tarball/fallback clone 失败提示，错误信息会指向 `gh auth status`、`GITHUB_TOKEN`、release tag、权限和网络排查。下一步剩余较大的方向是导入/迁移与多配置支持。
+- 不要自己决定做什么 — 等 Hermes 指令
+- 不要 git commit — Claude Code 负责
+- 不要删除 coverage/
+- 每轮结束后保留你的修改在工作区，不要回退

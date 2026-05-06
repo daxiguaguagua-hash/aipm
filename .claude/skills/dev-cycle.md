@@ -1,61 +1,62 @@
 ---
 name: dev-cycle
-description: Development cycle — after each feature or fix, run build, test, commit, and codex audit in a loop until clean. Use when writing or modifying code.
+description: Workspace cleanup cycle — after Codex finishes coding, commit, verify, and clean. Use when INBOX says to clean workspace.
 ---
 
-# Dev Cycle Skill
+# Workspace Cleanup Cycle
 
-After every batch of code changes, run this cycle:
+Your role is workspace manager. Codex does the coding. You do the cleanup.
 
-## Step 1: Build
-```bash
-npm run build
-```
-If build fails, fix errors and restart from Step 1.
+After Codex finishes a round, Hermes will write to INBOX.md telling you to clean up.
 
-## Step 2: Test
-```bash
-npm test
-```
-If any test fails, fix and restart from Step 1.
-
-## Step 3: Commit
-```bash
-git add <changed files>
-git commit -m "descriptive message"
-```
-
-## Step 4: Codex Audit
-```bash
-codex review --uncommitted
-```
-If `codex` reports issues, fix them and restart from Step 1.
-
-If `codex` is unavailable, skip this step but note it.
-
-## Step 5: Done
-
-Report what was fixed/changed.
-
-## Step 6: Clean Workspace
+## Step 1: Check Status
 
 ```bash
 git status
 ```
 
-If there are uncommitted changes (including untracked files that are not in .gitignore), commit them:
+See what Codex changed.
+
+## Step 2: Verify
+
+If there are significant code changes, run verification:
 
 ```bash
-git add <files>
-git commit -m "chore: clean workspace after dev cycle"
+npm run build
+npm test
 ```
 
-Working tree must be clean before considering the cycle truly done. This is the final gate — nothing ships with a dirty workspace.
+If build or test fails, note it in STATUS.md and stop. Do NOT fix code — that's Codex's job.
+
+## Step 3: Commit
+
+```bash
+git add <changed files>
+git commit -m "descriptive message summarizing Codex's round"
+```
+
+## Step 4: Verify Clean
+
+```bash
+git status
+```
+
+Must show only `coverage/` untracked (which is normal). Nothing else.
+
+## Step 5: Update STATUS
+
+Write a summary to STATUS.md (newest at top).
+
+## Step 6: Clear INBOX
+
+INBOX.md should be empty after processing.
 
 ---
 
 ## Rules
+
 - Never skip steps. If a step fails, fix before moving on.
-- Commit messages should describe the WHY, not just the WHAT.
-- If codex finds an issue, always address it (fix or justify why not).
-- All commands run without user confirmation — this is an automated cycle.
+- Do NOT write feature code. That's Codex's job.
+- Do NOT modify Codex's code to fix bugs — report them in STATUS.md.
+- Commit messages should describe what Codex delivered.
+- All commands run without user confirmation.
