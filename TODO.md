@@ -42,7 +42,7 @@
   - fallback git clone 失败
   - 错误信息要告诉用户下一步怎么排查
 
-- [ ] **已有工具配置导入 / 迁移** — 用户可能已经在 Codex、OpenClaw、OpenRouter 或其他 AI 工具里维护了一套 agents / skills / MCP / rules 配置。aipm 需要提供导入入口，把“已有工具配置”转换成 `.ai/stack.yaml`，否则用户从旧工具切到新工具时仍然要手工搬配置。
+- [-] **已有工具配置导入 / 迁移** — Phase 1 完成：`aipm import openclaw` 已实现（dry-run only，不提取 secrets）。待扩展：codex importer、OpenRouter。
   - 先定义通用导入流程：扫描来源配置 → 生成迁移预览 → 写入或合并 stack → 用户再执行 `aipm use <target>`
   - 第一阶段优先支持只读导入和 dry-run，不直接覆盖用户现有 stack
   - 每个来源工具做独立 importer，例如 `aipm import codex`、`aipm import openclaw`
