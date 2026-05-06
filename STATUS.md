@@ -5,6 +5,12 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 12:45
+- commit: docs: correct workflow roles — CC=dev, Codex=reviewer, Hermes=controller
+- 角色修正：Claude Code 是开发者（非工作区管理员），Codex 是审批者
+- build 通过，57 tests 全绿
+- INBOX.md 已清空
+
 ## 2026-05-06 12:35
 - commit: docs: restructure workflow roles with Hermes as controller
 - 角色分工明确：Hermes (总控) → INBOX → Workspace Manager → Codex (开发)
