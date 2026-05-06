@@ -94,7 +94,10 @@ async function exportToPlatform(platform: string): Promise<void> {
   }, outputDir);
 }
 
-function formatStackAsYaml(stack: StackConfig): string {
+function formatStackToFile(stack: StackConfig, filePath: string): string {
+  if (filePath.endsWith('.json')) {
+    return JSON.stringify(stack, null, 2) + '\n';
+  }
   return yaml.dump(stack, { lineWidth: 120, noRefs: true, sortKeys: false });
 }
 
@@ -882,21 +885,24 @@ program
         plan = await importHermes(content);
       }
 
-      // --json: output plan and exit
-      if (options.json) {
-        // If --write, compute merge result for JSON output
-        if (options.write) {
-          const stackFile = findStackConfigFile();
-          if (!stackFile) {
-            logError('No stack configuration file found. Run \'aipm init\' first.');
-            process.exit(1);
-          }
-          const stack = await loadStackConfigFromFile(stackFile);
-          const strategy = options.onConflict === 'overwrite' ? 'overwrite' : 'keep-existing';
-          const mergeResult = mergeIntoStack(plan, stack, strategy);
-          console.log(JSON.stringify({ plan, merge: { ...mergeResult, stack: undefined } }, null, 2));
-          process.exit(0);
+      // --json --write: apply merge, write, then output JSON
+      if (options.json && options.write) {
+        const stackFile = findStackConfigFile();
+        if (!stackFile) {
+          logError('No stack configuration file found. Run \'aipm init\' first.');
+          process.exit(1);
         }
+        const stack = await loadStackConfigFromFile(stackFile);
+        const strategy = options.onConflict === 'overwrite' ? 'overwrite' : 'keep-existing';
+        const mergeResult = mergeIntoStack(plan, stack, strategy);
+        const fileContent = formatStackToFile(mergeResult.stack, stackFile);
+        await fs.promises.writeFile(stackFile, fileContent, 'utf8');
+        console.log(JSON.stringify({ plan, merge: { ...mergeResult, stack: undefined }, written: stackFile }, null, 2));
+        process.exit(0);
+      }
+
+      // --json (no --write): output plan only
+      if (options.json) {
         console.log(JSON.stringify(plan, null, 2));
         process.exit(0);
       }
@@ -968,8 +974,8 @@ program
         }
 
         // Write back
-        const yamlContent = formatStackAsYaml(mergeResult.stack);
-        await fs.promises.writeFile(stackFile, yamlContent, 'utf8');
+        const fileContent = formatStackToFile(mergeResult.stack, stackFile);
+        await fs.promises.writeFile(stackFile, fileContent, 'utf8');
         console.log();
         logSuccess(`Merged into ${stackFile} (${mergeResult.addedAgents} agents, ${mergeResult.addedMcps} MCPs added)`);
         process.exit(0);

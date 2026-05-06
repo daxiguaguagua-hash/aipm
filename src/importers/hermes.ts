@@ -5,7 +5,7 @@ const UNMAPPED_TOP_LEVEL = new Set([
   'compression', 'memory', 'session_reset', 'tool_loop_guardrails',
   'code_execution', 'delegation', 'streaming', 'display', 'onboarding',
   'terminal', 'browser', 'skills', 'stt', 'prompt_caching',
-  'group_sessions_per_user',
+  'group_sessions_per_user', 'gateway', 'profiles', 'cron', 'hooks',
 ]);
 
 const MAX_PERSONALITIES = 5;
