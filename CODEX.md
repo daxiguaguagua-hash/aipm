@@ -19,9 +19,17 @@ It exists to keep project progress under user control after earlier agent work a
 
 - Build passes with `npm run build`.
 - Test suite passes with `npm test`.
-- Latest observed test result: 49 tests passed across 5 test suites.
-- Working tree is clean except for untracked `coverage/` output.
-- Latest committed task update: `docs: mark GitHub backend and dev-cycle skill as done`.
+- Latest observed test result: 50 tests passed across 6 test suites.
+- Current package version is `0.2.0-alpha.1`.
+- README / README.zh mark the project as experimental alpha / dogfood only.
+- ROADMAP marks v0.2.0 as alpha hardening.
+- Gray-release acceptance checklist exists at `docs/alpha-checklist.md`.
+- Documentation test covers the alpha checklist content.
+
+## Development Agents
+
+- Claude Code is configured to use Deepseek 4.0 Pro.
+- Codex is configured to use GPT-5.5.
 
 ## Completed Work
 
@@ -50,30 +58,19 @@ It exists to keep project progress under user control after earlier agent work a
 - Update flow has been hardened so failed updates do not corrupt cache or lock state.
 - The development loop has been extracted into a reusable skill.
 - `ROADMAP.md` has been organized into v0.1.0, v0.2.0, and v0.3.0.
+- `v0.2.0-alpha.1` positioning is complete.
+- Gray-release acceptance checklist is complete.
 
 ## Remaining Work
 
-The only open user feedback item in `TODO.md` is multi-configuration support.
+Open user feedback items in `TODO.md` are alpha hardening items and later feature work.
 
-Treat it as pending feedback, not as automatically authorized implementation.
+Current priority order:
 
-Recommended direction:
-
-1. Implement named stack files first.
-2. Use `.ai/<name>.stack.yaml` as the concrete storage format.
-3. Add a global `-c, --config <name-or-path>` option or per-command equivalent.
-4. Keep default behavior backward compatible with `.ai/stack.yaml`.
-5. Defer single-file profile syntax until named stack files are stable.
-
-Acceptance criteria for multi-configuration support:
-
-- `aipm init <name>` creates `.ai/<name>.stack.yaml`.
-- Existing `aipm init` still creates `.ai/stack.yaml`.
-- Commands can select a config by name.
-- Commands can still auto-discover `.ai/stack.yaml` without options.
-- Lock/current state does not collide between named configs.
-- README and README.zh explain the new workflow.
-- Tests cover config discovery, command selection, and state file placement.
+1. Add CLI smoke test.
+2. Add runnable demo stack.
+3. Improve common failure messages.
+4. Later: import/migration and multi-configuration support.
 
 ## Agent Control Notes
 
@@ -86,12 +83,6 @@ Acceptance criteria for multi-configuration support:
 
 ## Next Codex Step
 
-When the user asks to continue implementation, confirm the selected scope from `TODO.md` first. If the user selects the current open item, start with multi-configuration support.
+用户指令：继续推进 aipm 项目，按照 TDD 工作流推进 `建立灰度验收清单`。该任务已完成。
 
-Suggested first investigation:
-
-1. Read `src/cli.ts` config discovery and AI directory logic.
-2. Read `src/parser.ts` for stack loading behavior.
-3. Read tests around CLI, parser, and cache.
-4. Decide how named config lock files should be named.
-5. Record the active implementation scope in this document before coding.
+本轮新增 `tests/docs.test.ts`，先验证 checklist 必须覆盖主流程、生成文件、预期输出和失败排查点，再新增 `docs/alpha-checklist.md` 让测试通过。下一步建议推进 `增加 CLI smoke test`。

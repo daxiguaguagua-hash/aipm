@@ -6,6 +6,28 @@
 
 Git commit 自动执行，但不要 git push（除非明确要求）。
 
+# 用户远程消息（INBOX / STATUS）
+
+用户可能不在电脑前，通过 Hermes Agent 远程传话。每个循环开始前检查：
+
+## INBOX.md（用户 → 你）
+- 每个循环开始前：`cat INBOX.md`。如果有内容，优先处理。
+- 处理完后：清空 INBOX.md，把执行结果追加到 STATUS.md。
+- INBOX.md 的内容优先级高于 TODO.md 和 CODEX.md。
+
+## STATUS.md（你 → 用户）
+- 每个循环结束后：把当前状态追加到 STATUS.md 顶部（最新在上）。
+- 格式：时间戳 + 三行以内摘要。只写事实，不写计划。
+- 示例：
+  ```
+  ## 2026-05-06 10:30
+  - build 通过，49 tests 全绿
+  - commit: fix: 修复 parser 对空 yaml 的处理
+  - codex review: 通过，无问题
+  ```
+
+如果 codex 不可用，在 STATUS.md 中注明。
+
 # 每个小闭环的流程
 
 使用 `/dev-cycle` skill。每次代码改动后走：build → test → commit → codex review → 修复直到通过。

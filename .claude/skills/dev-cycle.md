@@ -34,7 +34,23 @@ If `codex` reports issues, fix them and restart from Step 1.
 If `codex` is unavailable, skip this step but note it.
 
 ## Step 5: Done
-Report what was fixed/changed. The working tree should be clean.
+
+Report what was fixed/changed.
+
+## Step 6: Clean Workspace
+
+```bash
+git status
+```
+
+If there are uncommitted changes (including untracked files that are not in .gitignore), commit them:
+
+```bash
+git add <files>
+git commit -m "chore: clean workspace after dev cycle"
+```
+
+Working tree must be clean before considering the cycle truly done. This is the final gate — nothing ships with a dirty workspace.
 
 ---
 

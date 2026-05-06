@@ -4,6 +4,8 @@
 
 aipm is the **Control Plane for your AI Coding environment**.
 
+> **Project status:** `v0.2.0-alpha.1` is experimental dogfood software. Use it to validate the main workflow, not as a stable production dependency.
+
 It unifies the management of your AI capabilities (skills, agents, MCP servers) and deploys them to different AI tools:
 - Claude Code
 - OpenClaw (NanoClaw)
@@ -26,6 +28,8 @@ Supports both YAML (`.yaml`/`.yml`) and JSON formats.
 ---
 
 ## Installation (Development)
+
+This alpha is intended for local development and dogfood validation.
 
 ```bash
 # Clone and build
@@ -161,7 +165,7 @@ See [ROADMAP.md](./ROADMAP.md) for the full version plan.
 
 ## Project Status
 
-- ✅ **v0.2.0 In Progress** - Extended CLI with management commands
+- ⚠️ **v0.2.0-alpha.1** - Experimental alpha / dogfood only
 - ✅ Parsing and validation of `stack.yaml` (YAML + JSON)
 - ✅ Git installer for **skills and agents** with automatic caching
 - ✅ Adapters for all three platforms with skills and agents export (Claude Code: MCP + skills + agents)
@@ -169,12 +173,19 @@ See [ROADMAP.md](./ROADMAP.md) for the full version plan.
 - ✅ Agent installation from remote Git repositories
 - ✅ Automatic version checking and upgrades
 - ✅ Environment status overview and component lifecycle management
+- 🔒 Large feature work is temporarily frozen while the main workflow is hardened.
 
 ---
 
 ## Development Workflow
 
 See [docs/development-workflow.md](./docs/development-workflow.md) for the development process and how superpowers skills are used in this project.
+
+## Development Environment
+
+This project is developed with multiple AI coding agents:
+- Claude Code, configured to use Deepseek 4.0 Pro
+- Codex, configured to use GPT-5.5
 
 ## Original Design
 

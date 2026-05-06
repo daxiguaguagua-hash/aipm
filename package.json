@@ -1,6 +1,6 @@
 {
   "name": "aipm",
-  "version": "0.1.0",
+  "version": "0.2.0-alpha.1",
   "description": "AI Coding Stack Manager - AI 编程栈管理器",
   "main": "dist/cli.js",
   "bin": {

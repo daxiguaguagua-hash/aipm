@@ -26,11 +26,17 @@ aipm 的目标：**把 AI 编程工具的"工具切换"变成"环境切换"**。
 
 ---
 
-## v0.2.0 — 丰富 CLI 与工程质量 ✅
+## v0.2.0-alpha — Alpha hardening ⚠️
 
-**正在进行** — 2026年5月
+**Alpha hardening 中** — 2026年5月
 
-在 MVP 基础上补齐管理命令、提升工程质量、引入 Codex 审计循环。
+当前版本定位为 `v0.2.0-alpha.1`：先证明真实主路径可重复跑通，再继续堆新功能。大功能暂时冻结，重点转向 dogfood、灰度验收、CLI smoke test、可运行 demo stack 和失败体验。
+
+主流程：
+
+`aipm init` → 编辑 stack → `aipm validate` → `aipm install` → `aipm use claude-code` → 检查生成文件
+
+已完成的 CLI 能力如下。
 
 ### 新增命令
 
