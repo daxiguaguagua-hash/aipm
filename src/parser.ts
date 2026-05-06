@@ -75,7 +75,10 @@ export function parseStackConfig(content: string): StackConfig {
           throw new Error(`MCP at index ${index} missing required "id" field`);
         }
         if (!mcp.command || typeof mcp.command !== 'string') {
-          throw new Error(`MCP at index ${index} missing required "command" field`);
+          // HTTP MCPs with url don't need command
+          if (mcp.transport !== 'http' || !mcp.url) {
+            throw new Error(`MCP at index ${index} missing required "command" field`);
+          }
         }
       });
     }

@@ -12,9 +12,11 @@ import { GitInstaller } from './installer';
 import { getAdapter, TargetPlatformName } from './adapters';
 import { ensureDir, getLocalAiDir, logInfo, logSuccess, logError } from './utils';
 import { InstalledComponent, StackConfig } from './types';
-import { detectOpenClawPath } from './importers/detector';
+import { detectOpenClawPath, detectCodexPath, detectOpenRouterPath } from './importers/detector';
 import { importOpenClaw } from './importers/openclaw';
 import { importHermes } from './importers/hermes';
+import { importCodex } from './importers/codex';
+import { importOpenRouter } from './importers/openrouter';
 import { mergeIntoStack, ConflictStrategy } from './importers/merge';
 import { MigrationPlan } from './importers/types';
 
@@ -847,14 +849,14 @@ program
  */
 program
   .command('import <source>')
-  .description('Import configuration from an existing tool. Supported sources: openclaw, hermes')
+  .description('Import configuration from an existing tool. Supported sources: openclaw, hermes, codex, openrouter')
   .option('--no-dry-run', 'Apply import and write changes (disabled without --write)')
   .option('--write', 'Write merged configuration to stack.yaml')
   .option('--on-conflict <strategy>', 'Conflict resolution: keep-existing (default) or overwrite', 'keep-existing')
   .option('--json', 'Output migration plan as JSON')
   .action(async (source: string, options: { dryRun?: boolean; write?: boolean; onConflict?: string; json?: boolean }) => {
     try {
-      const SUPPORTED = ['openclaw', 'hermes'];
+      const SUPPORTED = ['openclaw', 'hermes', 'codex', 'openrouter'];
       if (!SUPPORTED.includes(source)) {
         logError(`Unsupported import source: "${source}". Supported: ${SUPPORTED.join(', ')}`);
         process.exit(1);
@@ -873,6 +875,22 @@ program
         }
         const content = await fs.promises.readFile(configPath, 'utf8');
         plan = await importOpenClaw(content);
+      } else if (source === 'codex') {
+        configPath = detectCodexPath();
+        if (!configPath) {
+          logError('Codex configuration not found at ~/.codex/config.toml');
+          process.exit(1);
+        }
+        const content = await fs.promises.readFile(configPath, 'utf8');
+        plan = await importCodex(content);
+      } else if (source === 'openrouter') {
+        configPath = detectOpenRouterPath();
+        if (!configPath) {
+          logError('OpenRouter configuration not found at ~/.openrouter/models.json');
+          process.exit(1);
+        }
+        const content = await fs.promises.readFile(configPath, 'utf8');
+        plan = await importOpenRouter(content);
       } else {
         // hermes
         const hermesPath = path.join(os.homedir(), '.hermes', 'config.yaml');

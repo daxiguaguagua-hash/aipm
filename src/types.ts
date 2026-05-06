@@ -17,10 +17,11 @@ export interface Agent {
 
 export interface MCP {
   id: string;
-  command: string;
+  command?: string;
   args?: string[];
   env?: Record<string, string>;
   transport?: 'stdio' | 'http';
+  url?: string;
 }
 
 export type TargetPlatform = 'claude-code' | 'openclaw' | 'opencode';
