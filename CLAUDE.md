@@ -14,9 +14,9 @@ Git commit 自动执行，但不要 git push（除非明确要求）。
 
 1. `npm run build` — 编译
 2. `npm test` — 测试
-3. `git add` + `git commit` — 提交
-4. `codex review` — 让 Codex 审批
-5. 如果 Codex 发现问题，修复后从 Step 1 重新来
+3. `codex review --uncommitted` — Codex 审批未提交的改动
+4. 如果 Codex 发现问题，修复后从 Step 1 重新来
+5. Codex 通过后：`git add` + `git commit` — 提交
 6. 工作区必须干净（除 coverage/ 外无未提交文件）
 
 如果 codex 不可用，跳过审批但要注明。

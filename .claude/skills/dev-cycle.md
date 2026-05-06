@@ -1,6 +1,6 @@
 ---
 name: dev-cycle
-description: Complete development cycle — write code, build, test, commit, codex review. Use for every batch of code changes.
+description: Complete development cycle — write code, build, test, codex review, then commit. Use for every batch of code changes.
 ---
 
 # Dev Cycle
@@ -19,18 +19,19 @@ npm test
 ```
 If any test fails, fix and restart from Step 1.
 
-## Step 3: Commit
+## Step 3: Codex Review
+```bash
+codex review --uncommitted
+```
+Codex 审查未提交的改动。如果发现问题，修复后从 Step 1 重新来。
+如果 Codex 不可用，跳过但要注明。
+
+## Step 4: Commit
 ```bash
 git add <changed files>
 git commit -m "descriptive message"
 ```
-
-## Step 4: Codex Review
-```bash
-codex review --uncommitted
-```
-If Codex finds issues, fix them and restart from Step 1.
-If Codex is unavailable, skip but note in STATUS.md.
+只在 Codex 审批通过后提交。
 
 ## Step 5: Clean Workspace
 ```bash
@@ -46,5 +47,6 @@ Write summary to STATUS.md, clear INBOX.md.
 ## Rules
 - Never skip steps.
 - TDD preferred: write tests first.
+- Commit ONLY after Codex approves (Step 3 passes before Step 4).
 - Commit messages describe WHY, not just WHAT.
 - All commands run without user confirmation.
