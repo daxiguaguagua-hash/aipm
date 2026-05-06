@@ -5,6 +5,12 @@
   最新状态在最上面。只写事实，不写计划。
 -->
 
+## 2026-05-06 16:10
+- commit: feat: add Codex and OpenRouter importers (Phase 3)
+- 13 suites, 96 tests 全绿 (+14 new tests)
+- Codex review: P1 (HTTP MCP command validation) + P2 (env passthrough) — 已修复
+- INBOX.md 已清空
+
 ## 2026-05-06 14:40
 - commit: fix Codex round 2 findings — formatStackToFile rename, MCP wiring, Hermes keys, .gitignore coverage/
 - build 通过，82 tests 全绿，Codex P3 only (coverage/ gitignore — 已修复)
