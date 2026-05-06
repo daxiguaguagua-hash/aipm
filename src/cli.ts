@@ -10,6 +10,8 @@ import { GitInstaller } from './installer';
 import { getAdapter, TargetPlatformName } from './adapters';
 import { ensureDir, getLocalAiDir, logInfo, logSuccess, logError } from './utils';
 import { InstalledComponent } from './types';
+import { detectOpenClawPath } from './importers/detector';
+import { importOpenClaw } from './importers/openclaw';
 
 const program = new Command();
 const DEFAULT_STACK_FILE_YAML = '.ai/stack.yaml';
@@ -824,6 +826,83 @@ program
       console.log();
     } catch (error) {
       logError(`Info failed: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * aipm import <source> - import existing tool configuration
+ */
+program
+  .command('import <source>')
+  .description('Import configuration from an existing tool (dry-run only). Supported sources: openclaw')
+  .option('--no-dry-run', 'Apply import (disabled in this phase)')
+  .option('--json', 'Output migration plan as JSON')
+  .action(async (source: string, options: { dryRun?: boolean; json?: boolean }) => {
+    try {
+      if (source !== 'openclaw') {
+        logError(`Unsupported import source: "${source}". Currently supported: openclaw`);
+        process.exit(1);
+      }
+
+      const configPath = detectOpenClawPath();
+      if (!configPath) {
+        logError(`OpenClaw configuration not found at ~/.openclaw/openclaw.json`);
+        logInfo('Make sure OpenClaw is installed and has been run at least once.');
+        process.exit(1);
+      }
+
+      const content = await fs.promises.readFile(configPath, 'utf8');
+      const plan = await importOpenClaw(content);
+
+      if (options.json) {
+        console.log(JSON.stringify(plan, null, 2));
+        process.exit(0);
+      }
+
+      console.log();
+      console.log(chalk.bold(`Migration plan for ${chalk.cyan('openclaw')}`));
+      console.log(`  Source: ${plan.source.path} (version ${plan.source.version || 'unknown'})`);
+      console.log();
+
+      if (plan.agents.length > 0) {
+        console.log(chalk.bold('  Agents to import:'));
+        plan.agents.forEach((a) => {
+          const modelInfo = a.model ? chalk.gray(` (model: ${a.model})`) : '';
+          console.log(`    ${chalk.cyan(a.id)}${modelInfo}`);
+        });
+        console.log();
+      }
+
+      if (plan.mcps.length > 0) {
+        console.log(chalk.bold('  MCPs (providers):'));
+        plan.mcps.forEach((m) => {
+          const modelCount = m.args?.length || 0;
+          console.log(`    ${chalk.cyan(m.id)} — ${modelCount} model(s) via ${m.transport}`);
+        });
+        console.log();
+      }
+
+      if (plan.unmapped.length > 0) {
+        console.log(chalk.yellow('  Not imported (unmapped fields):'));
+        plan.unmapped.forEach((u) => console.log(`    ${chalk.gray('•')} ${u}`));
+        console.log();
+      }
+
+      if (plan.notes.length > 0) {
+        plan.notes.forEach((n) => logInfo(n));
+      }
+
+      if (plan.agents.length === 0 && plan.mcps.length === 0) {
+        logInfo('No importable agents or MCPs found in OpenClaw configuration.');
+        logInfo('This is expected if you have not configured custom agents or providers.');
+      }
+
+      console.log();
+      logInfo('This is a dry-run preview. No files have been modified.');
+      logInfo('To apply this migration, copy relevant entries into your stack.yaml and run aipm install.');
+    } catch (error) {
+      logError(`Import failed: ${(error as Error).message}`);
       process.exit(1);
     }
   });
