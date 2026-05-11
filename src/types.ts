@@ -24,7 +24,7 @@ export interface MCP {
   url?: string;
 }
 
-export type TargetPlatform = 'claude-code' | 'openclaw' | 'opencode';
+export type TargetPlatform = 'claude-code' | 'openclaw' | 'opencode' | 'codex' | 'hermes';
 
 export interface TargetConfig {
   agents?: string[];

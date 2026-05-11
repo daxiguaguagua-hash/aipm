@@ -42,12 +42,13 @@
   - fallback git clone 失败
   - 错误信息要告诉用户下一步怎么排查
 
-- [-] **已有工具配置导入 / 迁移** — Phase 1 完成：`aipm import openclaw` 已实现（dry-run only，不提取 secrets）。待扩展：codex importer、OpenRouter。
-  - 先定义通用导入流程：扫描来源配置 → 生成迁移预览 → 写入或合并 stack → 用户再执行 `aipm use <target>`
-  - 第一阶段优先支持只读导入和 dry-run，不直接覆盖用户现有 stack
-  - 每个来源工具做独立 importer，例如 `aipm import codex`、`aipm import openclaw`
-  - 暂不承诺完全兼容，先覆盖 MCP、agent prompt/rules、常见本地 skill 路径等高价值字段
-  - OpenRouter 更偏模型/API 路由配置，需要单独判断哪些内容能映射到 aipm 的 agent/model/provider 字段
+- [*] **已有工具配置导入 / 迁移** — 全部完成。`aipm import openclaw/hermes/codex/openrouter` 四平台导入已实现（dry-run / --write / --json / --on-conflict）。13 suites / 96 tests 全绿，零 secrets 泄露。
+
+- [ ] **Dogfood 缺口：工作流文件管理** — zama 项目实战中发现 aipm 管不了的三个东西：
+  1. `.claude/settings.local.json`（权限绕过配置）— aipm 只生成 `settings.json`（MCP）
+  2. `.claude/skills/dev-cycle.md`（本地 skill）— aipm 只支持 Git 来源的 skill
+  3. `CODEX.md`（项目交接文档）— 不在 aipm 抽象模型内
+  应在 aipm 中支持声明式管理这些文件，让 `aipm use` 一步到位。
 
 - [ ] **多配置支持** — 同一个 Git 仓库可能需要多份 AI 环境配置（如前端/后端团队各用一套）。两种方案：
   - 方案 A：`aipm init <name>` 创建 `.ai/<name>.stack.yaml`，后续命令用 `-c` 指定

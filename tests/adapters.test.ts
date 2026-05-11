@@ -5,6 +5,8 @@ import { getAdapter } from '../src/adapters';
 import { ClaudeCodeAdapter } from '../src/adapters/claude-code';
 import { OpenClawAdapter } from '../src/adapters/openclaw';
 import { OpenCodeAdapter } from '../src/adapters/opencode';
+import { CodexAdapter } from '../src/adapters/codex';
+import { HermesAdapter } from '../src/adapters/hermes';
 import { StackConfig } from '../src/types';
 
 describe('Adapters', () => {
@@ -22,6 +24,16 @@ describe('Adapters', () => {
     test('returns OpenCodeAdapter for opencode', () => {
       const adapter = getAdapter('opencode');
       expect(adapter).toBeInstanceOf(OpenCodeAdapter);
+    });
+
+    test('returns CodexAdapter for codex', () => {
+      const adapter = getAdapter('codex');
+      expect(adapter).toBeInstanceOf(CodexAdapter);
+    });
+
+    test('returns HermesAdapter for hermes', () => {
+      const adapter = getAdapter('hermes');
+      expect(adapter).toBeInstanceOf(HermesAdapter);
     });
 
     test('throws error for unsupported platform', () => {
@@ -43,6 +55,8 @@ describe('Adapters', () => {
           },
           openclaw: {},
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = {
@@ -85,6 +99,8 @@ describe('Adapters', () => {
           },
           openclaw: {},
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = {
@@ -133,6 +149,8 @@ describe('Adapters', () => {
             mcps: ['filesystem'],
           },
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = {
@@ -163,6 +181,8 @@ describe('Adapters', () => {
           'claude-code': {},
           openclaw: { skills: ['missing-skill'], agents: ['missing-agent'] },
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = { skills: [], agents: [], mcps: [] };
@@ -194,6 +214,8 @@ describe('Adapters', () => {
           'claude-code': {},
           openclaw: {},
           opencode: { mcps: ['filesystem', 'github'] },
+          codex: {},
+          hermes: {},
         },
       };
       const installed = { skills: [], agents: [], mcps: [] };
@@ -227,6 +249,8 @@ describe('Adapters', () => {
           'claude-code': {},
           openclaw: {},
           opencode: { skills: ['test-skill'], agents: ['test-agent'] },
+          codex: {},
+          hermes: {},
         },
       };
       const installed = {
@@ -259,6 +283,8 @@ describe('Adapters', () => {
           'claude-code': { agents: ['inline-planner'] },
           openclaw: {},
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = { skills: [], agents: [], mcps: [] };
@@ -293,6 +319,8 @@ describe('Adapters', () => {
           'claude-code': { mcps: ['filesystem', 'github'] },
           openclaw: {},
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = { skills: [], agents: [], mcps: [] };
@@ -320,6 +348,8 @@ describe('Adapters', () => {
           'claude-code': { mcps: ['missing-mcp'] },
           openclaw: {},
           opencode: {},
+          codex: {},
+          hermes: {},
         },
       };
       const installed = { skills: [], agents: [], mcps: [] };

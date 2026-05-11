@@ -30,6 +30,8 @@ const baseStack: StackConfig = {
     'claude-code': { skills: [], agents: [], mcps: [] },
     openclaw: { skills: [], agents: [], mcps: [] },
     opencode: { skills: [], agents: [], mcps: [] },
+    codex: {},
+    hermes: {},
   },
 };
 

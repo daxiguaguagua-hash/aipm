@@ -66,7 +66,7 @@ function validateComponentId(id: string): void {
 }
 
 async function exportToPlatform(platform: string): Promise<void> {
-  const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode'];
+  const validPlatforms: TargetPlatformName[] = ['claude-code', 'openclaw', 'opencode', 'codex', 'hermes'];
   if (!validPlatforms.includes(platform as TargetPlatformName)) {
     logError(`Invalid platform: ${platform}. Valid platforms: ${validPlatforms.join(', ')}`);
     process.exit(1);

@@ -84,7 +84,7 @@ export function parseStackConfig(content: string): StackConfig {
     }
 
     // Validate targets
-    const validTargetPlatforms: TargetPlatform[] = ['claude-code', 'openclaw', 'opencode'];
+    const validTargetPlatforms: TargetPlatform[] = ['claude-code', 'openclaw', 'opencode', 'codex', 'hermes'];
     Object.keys(config.targets).forEach((platform) => {
       if (!validTargetPlatforms.includes(platform as TargetPlatform)) {
         throw new Error(`Invalid target platform: ${platform}. Valid platforms are: ${validTargetPlatforms.join(', ')}`);
