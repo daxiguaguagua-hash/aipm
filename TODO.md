@@ -44,6 +44,12 @@
 
 - [*] **已有工具配置导入 / 迁移** — 全部完成。`aipm import openclaw/hermes/codex/openrouter` 四平台导入已实现（dry-run / --write / --json / --on-conflict）。13 suites / 96 tests 全绿，零 secrets 泄露。
 
+- [ ] **默认 MCP 三件套** — 每个新项目应自动包含三个 MCP：[详见 docs/default-mcp.md](docs/default-mcp.md)
+  - `graphify` — 用户知识图谱（跨项目索引）
+  - `gbrain` — AI 会话内容图谱（跨会话记忆）
+  - `monorepo` — monorepo 框架生成的项目知识图谱
+  实现方式：`aipm init` 时自动注入三个 MCP 到 stack，或提供 `--with-defaults` 等机制。
+
 - [ ] **Dogfood 缺口：工作流文件管理** — zama 项目实战中发现 aipm 管不了的三个东西：
   1. `.claude/settings.local.json`（权限绕过配置）— aipm 只生成 `settings.json`（MCP）
   2. `.claude/skills/dev-cycle.md`（本地 skill）— aipm 只支持 Git 来源的 skill
